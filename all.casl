@@ -1,0 +1,69 @@
+MAIN      START   LABEL
+
+; COMMENT
+          ; COMMENT
+          LD      GR0, GR1 ; COMMENT
+          LD      GR0, LABEL
+          LD      GR0, #1234, GR1
+          ST      GR0, LABEL, GR1
+          LAD     GR0, LABEL, GR1
+
+          ADDA    GR0, GR1
+          ADDA    GR0, LABEL, GR1
+          ADDL    GR0, GR1
+          ADDL    GR0, LABEL, GR1
+
+          SUBA    GR0, GR1
+          SUBA    GR0, LABEL, GR1
+          SUBL    GR0, GR1
+          SUBL    GR0, LABEL, GR1
+          AND     GR0, GR1
+          AND     GR0, LABEL, GR1
+          OR      GR0, GR1
+          OR      GR0, LABEL, GR1
+          XOR     GR0, GR1
+          XOR     GR0, LABEL, GR1
+
+          CPA     GR0, GR1
+          CPA     GR0, LABEL, GR1
+          CPL     GR0, GR1
+          CPL     GR0, LABEL, GR1
+
+          SLA     GR0, LABEL, GR1
+          SRA     GR0, LABEL, GR1
+          SLL     GR0, LABEL, GR1
+          SRL     GR0, LABEL, GR1
+
+          JPL     LABEL, GR1
+          JMI     LABEL, GR1
+          JNZ     LABEL, GR1
+          JZE     LABEL, GR1
+          JOV     LABEL, GR1
+          JUMP    LABEL, GR1
+
+          PUSH    LABEL, GR1
+          POP     GR0
+
+          CALL    LABEL, GR1
+          RET
+
+          SVC     LABEL, GR1
+          NOP
+
+          PUSH    1234
+          PUSH    #ABCD
+          PUSH    LABEL
+          PUSH    =9876
+          PUSH    =#FEDC
+          PUSH    ='LITERAL STRING'
+
+SLABEL    DS      10
+LABEL     DC 'DC_STRING'
+;          IN      LABEL, SLABEL
+;          OUT     LABEL, SLABEL
+          RPUSH
+          RPOP
+
+         START
+          END
+          END

@@ -1,0 +1,11 @@
+{
+    "editor.formatOnSave": true,
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "editor.codeActionsOnSave": {
+        "source.addMissingImports": true,
+        "source.organizeImports": true
+    },
+}

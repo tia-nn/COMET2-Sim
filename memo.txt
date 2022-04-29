@@ -1,0 +1,98 @@
+
+オペランドパターン
+
+R (register): r1, r2
+I (immediate): r, addr [, x]
+J (jump): addr [, x]
+P (pop): r
+N (no operand): (オペランドなし)
+
+
+(アセンブラ・マクロ命令)
+
+START: [label]
+DS: 語数
+DC: 定数 [, 定数] ...
+INOUT: label, label
+
+
+# bnf
+
+<Assembler> ::= <Row>
+              | <Assembler> "\n" <Row>
+<Row> ::= <InstructionWithLabel>
+        | <InstructionWithLabel> <Comment>
+        | <Comment>
+        | ""
+<InstructionWithLabel> ::= <Label> <Instruction>
+                         | <LeadSpace> <Instruction>
+
+<Instruction> ::= <MachineMnemonic>
+                | <MachineMnemonic> <Operand>
+                | <AssemblerInstruction>
+
+<AssemblerInstruction> ::= <StartInstruction>
+                         | <EndInstruction>
+                         | <DSInstruction>
+                         | <DCInstruction>
+                         | <InOutInstruction>
+                         | <RStackInstruction>
+
+<StartInstruction> ::= "START" <STARTOperand>
+<EndInstruction> "END"
+<DSInstruction> ::= "DS" <DSOperand>
+<DCInstruction> ::= "DC" <DCOperand>
+<InOutInstruction> ::= "IN" <INOUTOperand>
+                     | "OUT" <INOUTOperand>
+<RStackInstruction> ::= "RPUSH"
+                      | "RPOP"
+
+<MachineMnemonic> ::= LD, ST, ...
+
+<Operand> ::= <ROperand>
+            | <IOperand>
+            | <JOperand>
+            | <POperand>
+            | <NOperand>
+
+<ROperand> ::= <R> "," <R>
+<IOperand> ::= <R> "," <Addr>
+             | <R> "," <Addr> "," <X>
+<JOperand> ::= <Addr>
+             | <Addr> "," <X>
+<POperand> ::= <R>
+<NOperand> ::= ""
+
+<STARTOperand> ::= ""
+                 | <Label>
+<DSOperand> ::= <Dec>
+<DCOperand> ::= <Constant>
+              | <DCOperand> "," <Constant>
+<INOUTOperand> ::= <Label> "," <Label>
+
+<R> ::= ~/GR[0-7]/i
+<X> ::= ~/GR[1-7]/i
+<Addr> ::= <Label>
+         | <NumberConstant>
+         | <Literal>
+
+<Label> ::= ~/[a-z_][a-z0-9_]*/i
+
+<Constant> ::= <NumberConstant>
+             | <String>
+<NumberConstant> ::= <Dec>
+                 | <Hex>
+<Dec> ::= ~/[0-9]+/
+<Hex> ::= ~/#[0-9a-f]+/
+<String> ::= ~/'.*'/
+
+<Literal> ::= <DecLiteral>
+            | <HexLiteral>
+            | <StringLiteral>
+<DecLiteral> ::= ~/=[0-9]+/
+<HexLiteral> ::= ~/=#[0-9a-f]+/
+<StringLiteral> ::= ~/='.*'/
+
+<Comment> ::= ~/;.*$/
+
+<LeadSpace> ::= ~/^\s+/
