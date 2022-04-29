@@ -1,15 +1,15 @@
-package parser;
+package assembler;
 
 import Word.I0to7;
 import Word.I1to7;
+import assembler.Instruction;
+import assembler.Tokenizer.MnemonicToken;
+import assembler.Tokenizer.Token;
+import assembler.Tokenizer.TokenInfo;
 import extype.Nullable;
 import extype.Tuple.Tuple2;
 import haxe.Exception;
 import haxe.iterators.StringIteratorUnicode;
-import parser.Instruction;
-import parser.Tokenizer.MnemonicToken;
-import parser.Tokenizer.Token;
-import parser.Tokenizer.TokenInfo;
 
 using StringTools;
 
@@ -71,11 +71,11 @@ class Parser {
     function parseInstruction(label:Nullable<String>):ParseResult<Instruction> {
         final beforeTokens = tokens.copy();
 
-        final mnemonic = switch (parseMachineMnemonic()) {
+        final mnemonic = switch (parseMMnemonic()) {
             case Success(r):
                 r;
             case Unmatched(message):
-                switch (parseAssemblerInstruction()) {
+                switch (parseAInstruction()) {
                     case Success(r):
                         return Success(Assembler({
                             label: label,
@@ -99,7 +99,7 @@ class Parser {
         }));
     }
 
-    function parseAssemblerInstruction() {
+    function parseAInstruction() {
         for (fn in [
             parseStartInstruction,
             parseEndInstruction,
@@ -117,7 +117,7 @@ class Parser {
         return Unmatched("");
     }
 
-    function parseStartInstruction():ParseResult<AssemblerMnemonic> {
+    function parseStartInstruction():ParseResult<AMnemonic> {
         if (!consumeStartMnemonic()) {
             return Unmatched("");
         }
@@ -130,7 +130,7 @@ class Parser {
         }
     }
 
-    function parseEndInstruction():ParseResult<AssemblerMnemonic> {
+    function parseEndInstruction():ParseResult<AMnemonic> {
         return if (consumeEndMnemonic()) {
             Success(END);
         } else {
@@ -138,7 +138,7 @@ class Parser {
         }
     }
 
-    function parseDSInstruction():ParseResult<AssemblerMnemonic> {
+    function parseDSInstruction():ParseResult<AMnemonic> {
         if (!consumeDSMnemonic()) {
             return Unmatched("");
         }
@@ -151,7 +151,7 @@ class Parser {
         }
     }
 
-    function parseDCInstruction():ParseResult<AssemblerMnemonic> {
+    function parseDCInstruction():ParseResult<AMnemonic> {
         if (!consumeDCMnemonic()) {
             return Unmatched("");
         }
@@ -164,7 +164,7 @@ class Parser {
         }
     }
 
-    function parseInOutInstruction():ParseResult<AssemblerMnemonic> {
+    function parseInOutInstruction():ParseResult<AMnemonic> {
         final inout = if (consumeInMnemonic()) {
             "in";
         } else if (consumeOutMnemonic()) {
@@ -185,7 +185,7 @@ class Parser {
         }
     }
 
-    function parseRStackInstruction():ParseResult<AssemblerMnemonic> {
+    function parseRStackInstruction():ParseResult<AMnemonic> {
         if (consumeRPushMnemonic()) {
             return Success(RPUSH);
         }
@@ -195,14 +195,14 @@ class Parser {
         return Unmatched("");
     }
 
-    function parseMachineMnemonic():ParseResult<MachineMnemonic> {
+    function parseMMnemonic():ParseResult<MMnemonic> {
         final token:Nullable<TokenInfo> = tokens[0];
 
         return token.fold(() -> Unmatched(""), token -> {
             switch (token.token) {
                 case Mnemonic(mnemonic):
                     final mnemonic = try {
-                        mnemonicTokenToMachineMnemonic(mnemonic);
+                        mnemonicTokenToMMnemonic(mnemonic);
                     } catch (e:Exception) {
                         return Unmatched("");
                     }
@@ -420,7 +420,7 @@ class Parser {
         });
     }
 
-    function parseAddr():ParseResult<AssemblerAddr> {
+    function parseAddr():ParseResult<AAddr> {
         switch (parseLabel()) {
             case Success(r):
                 return Success(Label(r));
@@ -618,7 +618,7 @@ class Parser {
         return consumeToken(LeadSpace);
     }
 
-    static function mnemonicTokenToMachineMnemonic(token:MnemonicToken):MachineMnemonic {
+    static function mnemonicTokenToMMnemonic(token:MnemonicToken):MMnemonic {
         return switch (token) {
             case LD:
                 LD;

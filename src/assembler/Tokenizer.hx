@@ -1,4 +1,4 @@
-package parser;
+package assembler;
 
 import extype.Tuple.Tuple2;
 import haxe.Exception;

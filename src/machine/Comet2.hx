@@ -1,17 +1,18 @@
 package machine;
 
 import Word.I1to7;
+import assembler.Instruction.PAddr;
+import assembler.Instruction.PInstOrData;
+import assembler.Instruction.PInstruction;
 import extype.Exception;
 import extype.Map;
 import extype.Nullable;
-import parser.Instruction.Preprocessed;
-import parser.Instruction.PreprocessedAddr;
-import parser.Instruction.PreprocessedInstruction;
 
+@:allow(Main)
 class Comet2 {
     var state:Comet2State;
 
-    public function new(insts:Array<Preprocessed>, addr:Int = 0) {
+    public function new(insts:Array<PInstOrData>, addr:Int = 0) {
         state = {
             gr: [
                 new Word(0),
@@ -23,7 +24,7 @@ class Comet2 {
                 new Word(0),
                 new Word(0)
             ],
-            sp: new Word(0),
+            sp: new Word(0xffff),
             pr: new Word(0),
             fr: {
                 of: false,
@@ -34,12 +35,12 @@ class Comet2 {
             labelTable: new Map(),
         };
 
-        state.memory[65536] = ExitAddr;
+        state.memory[0xffff] = ExitAddr;
 
         load(insts, addr);
     }
 
-    function load(insts:Array<Preprocessed>, addr:Int = 0) {
+    function load(insts:Array<PInstOrData>, addr:Int = 0) {
         var to = addr;
         for (inst in insts) {
             if (to >= state.memory.length) {
@@ -51,6 +52,7 @@ class Comet2 {
                     throw new Exception("duplicate label definition.");
                 }
                 state.labelTable.set(label, to);
+                true;
             });
 
             switch (inst) {
@@ -65,62 +67,139 @@ class Comet2 {
     }
 
     public function step():Bool {
+        trace(state.pr);
+
         final inst = switch (state.memory[state.pr]) {
             case Data(_), ExitAddr:
-                throw new Exception("executing data");
+                throw new Exception('executing data at pr=#${state.pr.toString("")}');
             case Inst(inst):
                 inst;
         }
 
+        // TODO: FR 変更
         switch (inst.mnemonic) {
-            case LD:
-                switch (inst.operand) {
-                    case R(operand):
-                        state.gr[operand.r1] = state.memory[state.gr[operand.r2]].toWord();
-                    case I(operand):
-                        state.gr[operand.r] = state.memory[addrToWord(operand.addr, operand.x)].toWord();
-                    case _:
-                        throw new Exception("");
+            case LDr(o):
+                state.gr[o.r1] = state.memory[state.gr[o.r2]].toWord();
+            case LDi(o):
+                state.gr[o.r] = state.memory[calcAddr(o.addr, o.x)].toWord();
+            case STi(o):
+                state.memory[calcAddr(o.addr, o.x)] = Data(state.gr[o.r]);
+            case LADi(o):
+                state.gr[o.r] = new Word(calcAddr(o.addr, o.x));
+            case ADDAr(o), ADDLr(o):
+                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) + state.gr[o.r2]);
+            case ADDAi(o), ADDLi(o):
+                state.gr[o.r] = new Word((state.gr[o.r] : Int) + state.memory[calcAddr(o.addr, o.x)].toWord());
+            case SUBAr(o), SUBLr(o):
+                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) - state.gr[o.r2]);
+            case SUBAi(o), SUBLi(o):
+                state.gr[o.r] = new Word((state.gr[o.r] : Int) - state.memory[calcAddr(o.addr, o.x)].toWord());
+            case ANDr(o):
+                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) & state.gr[o.r2]);
+            case ANDi(o):
+                state.gr[o.r] = new Word((state.gr[o.r] : Int) & state.memory[calcAddr(o.addr, o.x)].toWord());
+            case ORr(o):
+                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) | state.gr[o.r2]);
+            case ORi(o):
+                state.gr[o.r] = new Word((state.gr[o.r] : Int) | state.memory[calcAddr(o.addr, o.x)].toWord());
+            case XORr(o):
+                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) ^ state.gr[o.r2]);
+            case XORi(o):
+                state.gr[o.r] = new Word((state.gr[o.r] : Int) ^ state.memory[calcAddr(o.addr, o.x)].toWord());
+
+            case CPAr(o):
+                state.fr.zf = state.gr[o.r1].toSigned() == state.gr[o.r2].toSigned();
+                state.fr.sf = state.gr[o.r1].toSigned() < state.gr[o.r2].toSigned();
+            case CPAi(o):
+                state.fr.zf = state.gr[o.r].toSigned() == new Word(calcAddr(o.addr, o.x)).toSigned();
+                state.fr.sf = state.gr[o.r].toSigned() < new Word(calcAddr(o.addr, o.x)).toSigned();
+            case CPLr(o):
+                state.fr.zf = state.gr[o.r1].toUnsigned() == state.gr[o.r2].toUnsigned();
+                state.fr.sf = state.gr[o.r1].toUnsigned() < state.gr[o.r2].toUnsigned();
+            case CPLi(o):
+                state.fr.zf = state.gr[o.r].toUnsigned() == calcAddr(o.addr, o.x).toUnsigned();
+                state.fr.sf = state.gr[o.r].toUnsigned() < calcAddr(o.addr, o.x).toUnsigned();
+
+            case SLAi(o):
+                state.gr[o.r] = state.gr[o.r].sla(calcAddr(o.addr, o.x));
+            case SRAi(o):
+                state.gr[o.r] = state.gr[o.r] >> calcAddr(o.addr, o.x);
+            case SLLi(o):
+                state.gr[o.r] = state.gr[o.r] << calcAddr(o.addr, o.x);
+            case SRLi(o):
+                state.gr[o.r] = state.gr[o.r] >>> calcAddr(o.addr, o.x);
+
+            case JPLj(o):
+                if (!state.fr.sf && !state.fr.zf) {
+                    state.pr = calcAddr(o.addr, o.x);
+                    return false;
                 }
-            case RET:
-                switch (inst.operand) {
-                    case N:
-                        switch (state.memory[state.sp]) {
-                            case ExitAddr:
-                                pop();
-                                return true;
-                            case Data(_), Inst(_):
-                                state.pr = pop();
-                        }
-                    case _:
-                        throw new Exception("");
+            case JMIj(o):
+                if (state.fr.sf) {
+                    state.pr = calcAddr(o.addr, o.x);
+                    return false;
                 }
-            case POP:
-                switch (inst.operand) {
-                    case P(operand):
-                        state.gr[operand.r] = pop();
-                    case _:
-                        throw new Exception("");
+            case JNZj(o):
+                if (!state.fr.zf) {
+                    state.pr = calcAddr(o.addr, o.x);
+                    return false;
                 }
+            case JZEj(o):
+                if (state.fr.zf) {
+                    state.pr = calcAddr(o.addr, o.x);
+                    return false;
+                }
+            case JOVj(o):
+                if (state.fr.of) {
+                    state.pr = calcAddr(o.addr, o.x);
+                    return false;
+                }
+            case JUMPj(o):
+                state.pr = calcAddr(o.addr, o.x);
+                return false;
+
+            case PUSHj(o):
+                push(calcAddr(o.addr, o.x));
+            case POPp(o):
+                state.gr[o.r] = pop().toWord();
+
+            case CALLj(o):
+                push(state.pr + new Word(1));
+                state.pr = calcAddr(o.addr, o.x);
+                return false;
+            case RETn:
+                final addr = pop();
+                switch (addr) {
+                    case ExitAddr:
+                        return true;
+                    case Data(_), Inst(_):
+                        state.pr = addr.toWord();
+                        return false;
+                }
+            case NOPn:
             case _:
                 throw new Exception("not implemeted mnemonic.");
         }
+
+        state.pr++;
         return false;
     }
 
     function pop() {
-        final val = state.memory[state.sp].toWord();
-        state.sp++;
-        return val;
+        return state.memory[state.sp++];
     }
 
-    function addrToWord(addr:PreprocessedAddr, x:Nullable<I1to7>) {
+    function push(v:Word) {
+        state.memory[--state.sp] = Data(v);
+    }
+
+    function calcAddr(addr:PAddr, x:Nullable<I1to7>) {
         return switch (addr) {
             case Label(label):
                 final value = Nullable.of(state.labelTable.get(label)).getOrThrow(() -> new Exception("label not found."));
-                return value + state.gr[(x : Nullable<Int>).getOrElse(0)];
+                return new Word(value + state.gr[(x : Nullable<Int>).getOrElse(0)]);
             case Constant(value):
-                return (value : Int) + state.gr[(x : Nullable<Int>).getOrElse(0)];
+                return new Word((value : Int) + state.gr[(x : Nullable<Int>).getOrElse(0)]);
         }
     }
 }
@@ -143,7 +222,7 @@ typedef Comet2FR = {
 @:using(machine.Comet2.Comet2MemoryTypeTools)
 enum Comet2MemoryType {
     Data(d:Word);
-    Inst(inst:PreprocessedInstruction);
+    Inst(inst:PInstruction);
     ExitAddr;
 }
 

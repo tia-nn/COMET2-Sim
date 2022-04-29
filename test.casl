@@ -1,1 +1,9 @@
-  LD gr4, GR5
+PRG	START
+	LD	GR1,AA
+	ADDA	GR1,BB
+	ST	GR1,CC
+	RET
+AA	DC	5
+BB	DC	6
+CC	DS	1	;答えの保存場所
+	END

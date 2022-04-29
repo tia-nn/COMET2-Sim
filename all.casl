@@ -64,6 +64,4 @@ LABEL     DC 'DC_STRING'
           RPUSH
           RPOP
 
-         START
-          END
           END
