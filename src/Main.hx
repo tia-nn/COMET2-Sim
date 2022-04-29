@@ -23,7 +23,10 @@ class Main {
 
         File.write("dump.casl", false).write(Bytes.ofString(PInstOrDataTraceTools.toString(instructions.instructions, instructions.startLabel)));
 
-        final machine = new Comet2(instructions.instructions, 0);
+        final assembly = assembler.Assembler.assembleAll(instructions.instructions);
+        trace(assembly.map(a -> a.toString("")));
+
+        final machine = new Comet2(assembly, 0);
         while (!machine.step()) {
         }
 

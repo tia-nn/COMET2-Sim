@@ -1,5 +1,6 @@
 package;
 
+import extype.Nullable;
 import haxe.Exception;
 
 using Lambda;
@@ -11,6 +12,14 @@ abstract I0to7(Int) to Int {
             this = n;
         } else {
             throw new Exception('Over GR number range. (${n})');
+        }
+    }
+
+    public function toNullI1to7():Nullable<I1to7> {
+        return if (this == 0) {
+            Nullable.empty();
+        } else {
+            new I1to7(this);
         }
     }
 }
