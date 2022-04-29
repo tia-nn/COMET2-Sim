@@ -67,8 +67,6 @@ class Comet2 {
     }
 
     public function step():Bool {
-        trace(state.pr);
-
         final inst = switch (state.memory[state.pr]) {
             case Data(_), ExitAddr:
                 throw new Exception('executing data at pr=#${state.pr.toString("")}');
