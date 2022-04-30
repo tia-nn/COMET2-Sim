@@ -1,13 +1,11 @@
-PRG	START _START
+PRG	START
 
-DC #FFFF
-
-_START 	LD	GR1,=5
+	LD	GR1,=5
 	ADDA	GR1,BB
 	ST	GR1,CC
 	RET
+
 ; AA	DC	5
 BB	DC	6
 CC	DS	1	;答えの保存場所
-    DS 0
 	END

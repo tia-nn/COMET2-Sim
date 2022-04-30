@@ -3,3 +3,6 @@
 .haxelib
 
 dump.*
+
+comet2dump.txt
+comet2/

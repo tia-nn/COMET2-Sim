@@ -1,0 +1,11 @@
+./dependencies.hxml
+
+--class-path src
+
+--main Main
+
+--hl bin/dist.hl
+
+--cmd hl bin/dist.hl
+
+--next

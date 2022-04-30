@@ -56,7 +56,6 @@ class Comet2 {
     function fetch():LinkedInstruction {
         final firstWord = state.memory[state.pr++];
         final r_r1 = new I0to7((firstWord & 0x0070) >> 4);
-        trace(firstWord & 0x0007);
         final r2 = new I0to7(firstWord & 0x0007);
         final x = r2.toNullI1to7();
         final addr = () -> state.memory[state.pr++];
@@ -188,7 +187,6 @@ class Comet2 {
     public function step():Bool {
         final mnemonic = fetch();
 
-        trace(mnemonic);
         // TODO: FR 変更
         switch (mnemonic) {
             case R(i):

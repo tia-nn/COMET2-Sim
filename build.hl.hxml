@@ -1,9 +1,12 @@
 ./dependencies.hxml
 
 --class-path src
+--main Assembler
+--hl bin/assembler.hl
 
---main Main
+--next
+./dependencies.hxml
 
---hl bin/dist.hl
-
---cmd hl bin/dist.hl
+--class-path src
+--main Comet2
+--hl bin/comet2.hl
