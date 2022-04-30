@@ -27,9 +27,18 @@ INOUT: label, label
 <InstructionWithLabel> ::= <Label> <Instruction>
                          | <LeadSpace> <Instruction>
 
-<Instruction> ::= <MachineMnemonic>
-                | <MachineMnemonic> <Operand>
+<Instruction> ::= <RInstruction>
+                | <IInstruction>
+                | <JInstruction>
+                | <PInstruction>
+                | <NInstruction>
                 | <AssemblerInstruction>
+
+<RInstruction> ::= <RMnemonic> <ROperand>
+<IInstruction> ::= <IMnemonic> <IOperand>
+<JInstruction> ::= <JMnemonic> <JOperand>
+<PInstruction> ::= <PMnemonic> <POperand>
+<NInstruction> ::= <NMnemonic> <NOperand>
 
 <AssemblerInstruction> ::= <StartInstruction>
                          | <EndInstruction>
@@ -47,13 +56,11 @@ INOUT: label, label
 <RStackInstruction> ::= "RPUSH"
                       | "RPOP"
 
-<MachineMnemonic> ::= LD, ST, ...
-
-<Operand> ::= <ROperand>
-            | <IOperand>
-            | <JOperand>
-            | <POperand>
-            | <NOperand>
+<RMnemonic> ::= LD, ADDA, SUBA, ...
+<IMnemonic> ::= LD, ST, LAD, ADDA, ...
+<JMnemonic> ::= JMI, JNZ, JZE, ...
+<PMnemonic> ::= POP
+<NMnemonic> ::= NOP, RET
 
 <ROperand> ::= <R> "," <R>
 <IOperand> ::= <R> "," <Addr>
