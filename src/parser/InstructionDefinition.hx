@@ -17,6 +17,7 @@ enum LinkedInstruction {
     J(i:LinkedJInstruction);
     P(i:LinkedPInstruction);
     N(i:LinkedNInstruction);
+    Data(d:Word);
 }
 
 typedef LinkedROperand = {
@@ -75,26 +76,39 @@ typedef ObjectInstructionWithLabel = {
 
 enum ObjectInstruction {
     R(i:ObjectRInstruction);
-    I(i:ObjectInstruction);
+    I(i:ObjectIInstruction);
     J(i:ObjectJInstruction);
     P(i:ObjectPInstruction);
     N(i:ObjectNInstruction);
+    Data(d:Word);
 }
 
-typedef ObjectRInstruction = LinkedRInstruction;
+typedef ObjectROperand = LinkedROperand;
 
-typedef ObjectIInstruction = {
-    final mnemonic:IMnemonic;
+typedef ObjectIOperand = {
     final r:I0to7;
     final addr:ObjectAddr;
     final ?x:Nullable<I1to7>;
 }
 
-typedef ObjectJInstruction = {
-    final mnemonic:JMnemonic;
+typedef ObjectJOperand = {
     final addr:ObjectAddr;
     final ?x:Nullable<I1to7>;
 }
+
+typedef ObjectPOperand = LinkedPOperand;
+typedef ObjectNOperand = LinkedNOperand;
+typedef ObjectRInstruction = LinkedRInstruction;
+
+typedef ObjectIInstruction = {
+    final mnemonic:IMnemonic;
+} &
+    ObjectIOperand;
+
+typedef ObjectJInstruction = {
+    final mnemonic:JMnemonic;
+} &
+    ObjectJOperand;
 
 typedef ObjectPInstruction = LinkedPInstruction;
 typedef ObjectNInstruction = LinkedNInstruction;
@@ -145,7 +159,7 @@ enum ParsedInstruction {
     N(i:ParsedNInstruction);
 }
 
-typedef ParsedROperand = LinkedROperand;
+typedef ParsedROperand = ObjectROperand;
 typedef ParsedRInstruction = ObjectRInstruction;
 
 typedef ParsedIOperand = {
@@ -169,9 +183,9 @@ typedef ParsedJInstruction = {
 } &
     ParsedJOperand;
 
-typedef ParsedPOperand = LinkedPOperand;
+typedef ParsedPOperand = ObjectPOperand;
 typedef ParsedPInstruction = ObjectPInstruction;
-typedef ParsedNOperand = LinkedNOperand;
+typedef ParsedNOperand = ObjectNOperand;
 typedef ParsedNInstruction = ObjectNInstruction;
 
 enum ParsedAddr {

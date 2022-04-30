@@ -1,25 +1,42 @@
 package;
 
 import parser.Parser;
+import preprocessor.Preprocessor;
+import preprocessor.StartEndChecker;
 import sys.io.File;
 import tokenizer.Tokenizer;
 
 class Main {
     static function main() {
-        final bytes = File.read("error.casl").readAll();
+        final bytes = File.read("test.casl").readAll();
         final src = bytes.getString(0, bytes.length, UTF8);
 
         final tokens = Tokenizer.tokenize(src);
         final node = Parser.parse(tokens);
 
-        switch (node) {
+        final node = switch (node) {
             case Success(r, w):
                 trace(r.join("\n"));
                 trace(w.join("\n"));
+                r;
             case Failed(e, w):
                 trace(e.join("\n"));
                 trace(w.join("\n"));
+                return;
         }
+
+        final errors = StartEndChecker.check(node);
+        switch (errors) {
+            case []:
+            case _:
+                trace(errors.join("\n"));
+                return;
+        }
+
+        final object = Preprocessor.preprocess(node);
+
+        trace("start at ", object.startLabel);
+        trace(object.instructions.join("\n"));
 
         // final validated = Validator.validate(node);
         // final instructions:Array<VInstruction> = validated.filter(v -> v.match(Success(_))).map(v -> v.getParameters()[0]);

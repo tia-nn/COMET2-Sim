@@ -135,6 +135,11 @@ class Parser {
                 throw new Exception("unreachable.");
         }
 
+        if (tokens.length == 1) {
+            lineErrors.push({value: '${tokenTypeUsingAsLabel}はラベルとして使えません.', col: 0});
+            return false;
+        }
+
         switch (tokens[1].token) {
             case Mnemonic(mnemonic):
                 lineErrors.push({value: '${tokenTypeUsingAsLabel}はラベルとして使えません.', col: 0});
@@ -161,7 +166,7 @@ class Parser {
                 case Unmatched(message):
             }
         }
-        return Unmatched("");
+        return Unmatched("命令が必要です.");
     }
 
     function parseRInstruction():ParseResult<ParsedInstruction> {
