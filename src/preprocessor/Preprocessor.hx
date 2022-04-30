@@ -18,6 +18,7 @@ import parser.InstructionDefinition.ParsedJInstruction;
 class Preprocessor {
     var literalLabelNumber = 0;
     var literals:Array<ObjectInstructionWithLabel> = [];
+    var programLabel:Null<String> = null;
     var startLabel:Null<String> = null;
     var pendingLabel:Array<String> = [];
     final instructions:Array<ObjectInstructionWithLabel>;
@@ -30,11 +31,7 @@ class Preprocessor {
         instructions = [];
     }
 
-    public static function preprocess(src:ReadOnlyArray<ParsedInstructionWithLine>):{
-        final instructions:ReadOnlyArray<ObjectInstructionWithLabel>;
-        final startLabel:String;
-        final withEndLabel:ReadOnlyArray<String>;
-    } {
+    public static function preprocess(src:ReadOnlyArray<ParsedInstructionWithLine>):ObjectFile {
         final preprocessor = new Preprocessor();
         preprocessor.run(src);
 
@@ -49,6 +46,7 @@ class Preprocessor {
         return {
             instructions: preprocessor.instructions.concat(literals),
             startLabel: (preprocessor.startLabel : Nullable<String>).getOrThrow(),
+            programLabel: (preprocessor.programLabel : Nullable<String>).getOrThrow(),
             withEndLabel: preprocessor.pendingLabel,
         };
     }
@@ -60,8 +58,10 @@ class Preprocessor {
                 case A(i):
                     switch (i) {
                         case START(label):
+                            // TODO: 仕様検討
+                            // pendingLabel = [inst.value.label.getOrThrow(() -> new Exception("StartEndChecker を通してください."))];
                             startLabel = label.getOrElse(inst.value.label.getOrThrow());
-                            pendingLabel = [inst.value.label.getOrThrow(() -> new Exception("StartEndChecker を通してください."))];
+                            programLabel = inst.value.label.getOrThrow(() -> new Exception("StartEndChecker を通してください."));
                         case END:
                         case DS(words):
                             if (words == 0) {
@@ -213,3 +213,10 @@ class Preprocessor {
         };
     }
 }
+
+typedef ObjectFile = {
+    final instructions:ReadOnlyArray<ObjectInstructionWithLabel>;
+    final programLabel:String;
+    final startLabel:String;
+    final withEndLabel:ReadOnlyArray<String>;
+};

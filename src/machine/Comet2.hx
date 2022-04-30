@@ -316,6 +316,10 @@ class Comet2 {
     function calcAddr(addr:Word, x:Nullable<I1to7>) {
         return new Word((addr : Int) + state.gr[(x : Nullable<Int>).getOrElse(0)]);
     }
+
+    public function getState():FrozenComet2State {
+        return cast state;
+    }
 }
 
 typedef Comet2State = {

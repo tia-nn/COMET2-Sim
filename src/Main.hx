@@ -2,7 +2,9 @@ package;
 
 import assembler.Assembler;
 import machine.Comet2;
+import machine.Comet2Dump;
 import parser.Parser;
+import preprocessor.ObjectDump;
 import preprocessor.Preprocessor;
 import preprocessor.StartEndChecker;
 import sys.io.File;
@@ -40,7 +42,7 @@ class Main {
         trace("start at ", object.startLabel);
         trace(object.instructions.join("\n"));
 
-        // File.write("dump.casl", false).write(Bytes.ofString(PInstOrDataTraceTools.toString(instructions.instructions, instructions.startLabel)));
+        ObjectDump.dump(object);
 
         final offset = 5;
         final assembly = Assembler.assembleAll(object.instructions, object.startLabel, 5);
@@ -51,5 +53,7 @@ class Main {
         }
 
         trace(machine.state);
+
+        Comet2Dump.dump(machine.getState());
     }
 }
