@@ -4,6 +4,7 @@ import Word.I0to7;
 import Word.I1to7;
 import extype.Exception;
 import extype.Nullable;
+import extype.ReadOnlyArray;
 import extype.Tuple.Tuple2;
 import parser.InstructionDefinition.ObjectAddr;
 import parser.InstructionDefinition.ObjectIInstruction;
@@ -29,7 +30,11 @@ class Preprocessor {
         instructions = [];
     }
 
-    public static function preprocess(src:Array<ParsedInstructionWithLine>) {
+    public static function preprocess(src:ReadOnlyArray<ParsedInstructionWithLine>):{
+        final instructions:ReadOnlyArray<ObjectInstructionWithLabel>;
+        final startLabel:String;
+        final withEndLabel:ReadOnlyArray<String>;
+    } {
         final preprocessor = new Preprocessor();
         preprocessor.run(src);
 
@@ -48,7 +53,7 @@ class Preprocessor {
         };
     }
 
-    function run(src:Array<ParsedInstructionWithLine>) {
+    function run(src:ReadOnlyArray<ParsedInstructionWithLine>) {
         // TODO: warning は Parser に移す
         for (inst in src) {
             switch (inst.value.inst) {

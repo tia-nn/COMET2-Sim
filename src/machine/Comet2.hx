@@ -4,13 +4,14 @@ import Word.I0to7;
 import Word.I1to7;
 import extype.Exception;
 import extype.Nullable;
+import extype.ReadOnlyArray;
 import parser.InstructionDefinition.LinkedInstruction;
 
 @:allow(Main)
 class Comet2 {
     var state:Comet2State;
 
-    public function new(insts:Array<Word>, entry:Int = 0, offest:Int = 0) {
+    public function new(insts:ReadOnlyArray<Word>, entry:Int = 0, offest:Int = 0) {
         state = {
             gr: [
                 new Word(0),
@@ -39,7 +40,7 @@ class Comet2 {
         load(insts, offest);
     }
 
-    function load(insts:Array<Word>, addr:Int = 0) {
+    function load(insts:ReadOnlyArray<Word>, addr:Int = 0) {
         var to = addr;
         for (inst in insts) {
             if (to >= state.memory.length) {
@@ -329,4 +330,18 @@ typedef Comet2FR = {
     var of:Bool;
     var sf:Bool;
     var zf:Bool;
+}
+
+typedef FrozenComet2State = {
+    final gr:ReadOnlyArray<Word>;
+    final sp:Word;
+    final pr:Word;
+    final fr:FrozenComet2FR;
+    final memory:ReadOnlyArray<Word>;
+}
+
+typedef FrozenComet2FR = {
+    final of:Bool;
+    final sf:Bool;
+    final zf:Bool;
 }

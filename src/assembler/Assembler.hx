@@ -2,6 +2,7 @@ package assembler;
 
 import extype.Map;
 import extype.Nullable;
+import extype.ReadOnlyArray;
 import parser.InstructionDefinition.ObjectIInstruction;
 import parser.InstructionDefinition.ObjectInstruction;
 import parser.InstructionDefinition.ObjectInstructionWithLabel;
@@ -10,10 +11,10 @@ import parser.InstructionDefinition.ObjectJOperand;
 using Lambda;
 
 class Assembler {
-    public static function assembleAll(insts:Array<ObjectInstructionWithLabel>, startLabel:String, offset:Int) {
+    public static function assembleAll(insts:ReadOnlyArray<ObjectInstructionWithLabel>, startLabel:String, offset:Int) {
         final labelTable = new Map();
         final usingLableTable = new Map();
-        final text = insts.fold((item, result:Array<Word>) -> {
+        final text = insts.fold((item, result:ReadOnlyArray<Word>) -> {
             final r = assemble(item.inst);
             item.label.iter(label -> labelTable.set(label, result.length + offset));
             if (r.useLabel != null)
@@ -25,10 +26,10 @@ class Assembler {
             text[i] = new Word(labelTable.get(label));
         }
 
-        return {text: text, entry: labelTable.get(startLabel)};
+        return {text: (text : ReadOnlyArray<Word>), entry: labelTable.get(startLabel)};
     }
 
-    static function assemble(inst:ObjectInstruction):{text:Array<Word>, ?useLabel:String} {
+    static function assemble(inst:ObjectInstruction):{text:ReadOnlyArray<Word>, ?useLabel:String} {
         return switch (inst) {
             case R(i):
                 switch (i.mnemonic) {
@@ -159,10 +160,4 @@ class Assembler {
                 }
         }
     }
-}
-
-typedef AssembleResult = {
-    final text:Array<Word>;
-    final labelTable:Map<String, Word>;
-    final undefinedLabelTable:Map<String, Word>;
 }

@@ -1,6 +1,7 @@
 package;
 
 import extype.Nullable;
+import extype.ReadOnlyArray;
 import haxe.Exception;
 
 using Lambda;
@@ -92,7 +93,7 @@ abstract Word(Int) to Int {
         ];
     }
 
-    public static function fromBitArray(arr:Array<Int>):Word {
+    public static function fromBitArray(arr:ReadOnlyArray<Int>):Word {
         if (arr.length != 16)
             throw new Exception("array length must be 16");
         return new Word(arr.foldi((item, result, index) -> {

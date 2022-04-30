@@ -4,6 +4,7 @@ import Word.I0to7;
 import Word.I1to7;
 import extype.Exception;
 import extype.Nullable;
+import extype.ReadOnlyArray;
 import extype.Tuple.Tuple2;
 import haxe.iterators.StringKeyValueIteratorUnicode;
 import parser.InstructionDefinition.AInstruction;
@@ -31,17 +32,17 @@ using StringTools;
 
 @:allow(Main)
 class Parser {
-    var tokens:Array<TokenInfo>;
+    var tokens:ReadOnlyArray<TokenInfo>;
     var lineWarnings:Array<WithCol<String>>;
     var lineErrors:Array<WithCol<String>>;
 
-    function new(tokens:Array<TokenInfo>) {
+    function new(tokens:ReadOnlyArray<TokenInfo>) {
         this.tokens = tokens;
         this.lineWarnings = [];
         this.lineErrors = [];
     }
 
-    public static function parse(tokens:Array<Array<TokenInfo>>):ParseReport {
+    public static function parse(tokens:ReadOnlyArray<ReadOnlyArray<TokenInfo>>):ParseReport {
         final instructions:Array<ParsedInstructionWithLine> = [];
         final errors:Array<WithPos<String>> = [];
         final warnings:Array<WithPos<String>> = [];

@@ -3,6 +3,7 @@ package parser;
 import Word.I0to7;
 import Word.I1to7;
 import extype.Nullable;
+import extype.ReadOnlyArray;
 
 /**
     parse phase:
@@ -69,7 +70,7 @@ typedef LinkedNInstruction = {
 // Object
 
 typedef ObjectInstructionWithLabel = {
-    final label:Array<String>;
+    final label:ReadOnlyArray<String>;
     final inst:ObjectInstruction;
 }
 
@@ -120,8 +121,8 @@ enum ObjectAddr {
 // Parsed
 
 enum ParseReport {
-    Success(r:Array<ParsedInstructionWithLine>, warnings:Array<WithPos<String>>);
-    Failed(e:Array<WithPos<String>>, w:Array<WithPos<String>>);
+    Success(r:ReadOnlyArray<ParsedInstructionWithLine>, warnings:ReadOnlyArray<WithPos<String>>);
+    Failed(e:ReadOnlyArray<WithPos<String>>, w:ReadOnlyArray<WithPos<String>>);
 }
 
 typedef WithPos<T> = {
@@ -190,14 +191,14 @@ typedef ParsedNInstruction = ObjectNInstruction;
 enum ParsedAddr {
     Label(l:String);
     Const(v:Word);
-    Literal(v:Array<Word>);
+    Literal(v:ReadOnlyArray<Word>);
 }
 
 enum AInstruction {
     START(?label:Nullable<String>);
     END;
     DS(words:Int);
-    DC(values:Array<Word>);
+    DC(values:ReadOnlyArray<Word>);
     IN(dataBuf:String, lengthBuf:String);
     OUT(dataBuf:String, lengthBuf:String);
     RPUSH;

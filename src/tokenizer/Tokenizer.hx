@@ -1,5 +1,6 @@
 package tokenizer;
 
+import extype.ReadOnlyArray;
 import extype.Tuple.Tuple2;
 import haxe.Exception;
 import tokenizer.TokenDefinition.MnemonicToken;
@@ -19,7 +20,7 @@ class Tokenizer {
         tokens = [];
     }
 
-    public static function tokenize(src:String) {
+    public static function tokenize(src:String):ReadOnlyArray<ReadOnlyArray<TokenInfo>> {
         final tokenizer = new Tokenizer(src);
         final tokens = tokenizer.tokenizeInner();
         return tokens;

@@ -1,9 +1,10 @@
 package preprocessor;
 
+import extype.ReadOnlyArray;
 import parser.InstructionDefinition;
 
 class StartEndChecker {
-    public static function check(src:Array<ParsedInstructionWithLine>):Array<{message:String, line:Int}> {
+    public static function check(src:ReadOnlyArray<ParsedInstructionWithLine>):ReadOnlyArray<{message:String, line:Int}> {
         final errors:Array<{message:String, line:Int}> = [];
         final shouldBeStart = src[0];
         final shouldBeEnd = src[src.length - 1];
