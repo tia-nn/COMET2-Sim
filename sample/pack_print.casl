@@ -1,0 +1,37 @@
+PRG	START
+
+	lad gr7, #2010  ; frame buffer
+	lad gr1, str  ; current addr
+	lad gr2, 0  ; buffer offset
+	lad gr3, 0  ; is low
+
+loop	ld gr0, 0, gr1
+		cpl gr0, 0
+		jze exit
+
+		cpl gr3, 0
+		jnz low
+high		sll gr0, 8
+			st gr0, #2010, gr2
+			lad gr3, 1
+			addl gr1, =1
+			jump end_if
+
+low 		ld gr4, #2010, gr2
+			xor gr0, gr4
+			st gr0, #2010, gr2
+			lad gr3, 0
+			addl gr1, =1
+			addl gr2, =1
+			jump end_if
+
+end_if	jump loop
+
+exit	lad gr7, #f000  ; exit
+	int 8
+
+; DATA
+
+str	dc 'ﾒｯｾｰｼﾞ', 0
+
+	END

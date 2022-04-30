@@ -1,5 +1,6 @@
 package;
 
+import machine.Comet2Bios;
 import machine.Comet2Display;
 import machine.Comet2Dump;
 import sys.io.File;
@@ -45,11 +46,12 @@ class Comet2 {
         }
 
         final comet2 = new Comet2Display(words, 0, 0, displayFile);
+        // final comet2 = new Comet2Bios(words, 0, 0);
         final dump = File.write("comet2dump.txt");
 
         while (!comet2.step()) {
-            dump.seek(0, SeekBegin);
-            Comet2Dump.dump(comet2.getState(), dump);
+            // dump.seek(0, SeekBegin);
+            // Comet2Dump.dump(comet2.getState(), dump);
         }
         dump.seek(0, SeekBegin);
         Comet2Dump.dump(comet2.getState(), dump);

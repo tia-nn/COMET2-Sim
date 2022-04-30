@@ -2,6 +2,7 @@ package assembler;
 
 import extype.Map;
 import extype.Nullable;
+import extype.Pair;
 import extype.ReadOnlyArray;
 import parser.InstructionDefinition.ObjectIInstruction;
 import parser.InstructionDefinition.ObjectInstruction;
@@ -13,17 +14,17 @@ using Lambda;
 class Assembler {
     public static function assembleAll(insts:ReadOnlyArray<ObjectInstructionWithLabel>, startLabel:String, offset:Int) {
         final labelTable = new Map();
-        final usingLableTable = new Map();
+        final usingLableTable:Array<Pair<String, Int>> = [];
         final text = insts.fold((item, result:ReadOnlyArray<Word>) -> {
             final r = assemble(item.inst);
             item.label.iter(label -> labelTable.set(label, result.length + offset));
             if (r.useLabel != null)
-                usingLableTable.set(r.useLabel, result.length + 1);
+                usingLableTable.push(new Pair(r.useLabel, result.length + 1));
             return result.concat(r.text);
         }, []);
 
-        for (label => i in usingLableTable) {
-            text[i] = new Word(labelTable.get(label));
+        for (p in usingLableTable) {
+            text[p.value2] = new Word(labelTable.get(p.value1));
         }
 
         return {text: (text : ReadOnlyArray<Word>), entry: labelTable.get(startLabel)};

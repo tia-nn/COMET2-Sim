@@ -156,13 +156,13 @@ class Comet2 {
                     x: x
                 });
             case 0x52: I({
-                    mnemonic: SLA,
+                    mnemonic: SLL,
                     r: r_r1,
                     addr: addr(),
                     x: x
                 });
             case 0x53: I({
-                    mnemonic: SLL,
+                    mnemonic: SRL,
                     r: r_r1,
                     addr: addr(),
                     x: x
@@ -189,6 +189,9 @@ class Comet2 {
         final mnemonic = fetch();
 
         // TODO: FR 変更
+        trace(state.gr.map(a -> a.toString()));
+        trace(state.pr, mnemonic);
+
         switch (mnemonic) {
             case R(i):
                 switch (i.mnemonic) {
@@ -204,6 +207,7 @@ class Comet2 {
                         state.gr[i.r1] = new Word((state.gr[i.r1] : Int) | state.gr[i.r2]);
                     case XOR:
                         state.gr[i.r1] = new Word((state.gr[i.r1] : Int) ^ state.gr[i.r2]);
+                        trace('xor', state.gr[i.r1].toString(), state.gr[i.r2].toString());
                     case CPA:
                         state.fr.zf = state.gr[i.r1].toSigned() == state.gr[i.r2].toSigned();
                         state.fr.sf = state.gr[i.r1].toSigned() < state.gr[i.r2].toSigned();
@@ -330,7 +334,7 @@ class Comet2 {
     }
 
     function calcAddr(addr:Word, x:Nullable<I1to7>) {
-        return new Word((addr : Int) + state.gr[(x : Nullable<Int>).getOrElse(0)]);
+        return new Word((addr : Int) + x.fold(() -> 0, gr -> state.gr[gr]));
     }
 
     public function getState():FrozenComet2State {
