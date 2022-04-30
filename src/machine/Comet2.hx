@@ -2,17 +2,15 @@ package machine;
 
 import Word.I0to7;
 import Word.I1to7;
-import assembler.Instruction.PAddr;
-import assembler.Instruction.PMnemonic;
 import extype.Exception;
-import extype.Map;
 import extype.Nullable;
+import parser.InstructionDefinition.LinkedInstruction;
 
 @:allow(Main)
 class Comet2 {
     var state:Comet2State;
 
-    public function new(insts:Array<Word>, addr:Int = 0) {
+    public function new(insts:Array<Word>, entry:Int = 0, offest:Int = 0) {
         state = {
             gr: [
                 new Word(0),
@@ -36,7 +34,9 @@ class Comet2 {
 
         state.memory[0xffff] = new Word(0xffff);
 
-        load(insts, addr);
+        state.pr = new Word(entry);
+
+        load(insts, offest);
     }
 
     function load(insts:Array<Word>, addr:Int = 0) {
@@ -52,90 +52,132 @@ class Comet2 {
         }
     }
 
-    function fetch():PMnemonic {
+    function fetch():LinkedInstruction {
         final firstWord = state.memory[state.pr++];
         final r_r1 = new I0to7((firstWord & 0x0070) >> 4);
         trace(firstWord & 0x0007);
         final r2 = new I0to7(firstWord & 0x0007);
         final x = r2.toNullI1to7();
-        final addr = () -> Constant(state.memory[state.pr++]);
+        final addr = () -> state.memory[state.pr++];
         return switch (firstWord >> 8) {
-            case 0x00:
-                NOPn;
-            case 0x10:
-                LDi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x11:
-                STi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x12:
-                LADi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x14:
-                LDr({r1: r_r1, r2: r2});
-            case 0x20:
-                ADDAi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x21:
-                SUBAi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x22:
-                ADDLi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x23:
-                SUBLi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x24:
-                ADDAr({r1: r_r1, r2: r2});
-            case 0x25:
-                SUBAr({r1: r_r1, r2: r2});
-            case 0x26:
-                ADDLr({r1: r_r1, r2: r2});
-            case 0x27:
-                SUBLr({r1: r_r1, r2: r2});
-            case 0x30:
-                ANDi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x31:
-                ORi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x32:
-                XORi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x34:
-                ANDr({r1: r_r1, r2: r2});
-            case 0x35:
-                ORr({r1: r_r1, r2: r2});
-            case 0x36:
-                XORr({r1: r_r1, r2: r2});
-            case 0x40:
-                CPAi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x41:
-                CPLi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x44:
-                CPAr({r1: r_r1, r2: r2});
-            case 0x45:
-                CPLr({r1: r_r1, r2: r2});
-            case 0x50:
-                SLAi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x51:
-                SRAi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x52:
-                SLAi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x53:
-                SLLi({r: new I0to7(r_r1), addr: addr(), x: x});
-            case 0x61:
-                JMIj({addr: addr(), x: x});
-            case 0x62:
-                JNZj({addr: addr(), x: x});
-            case 0x63:
-                JZEj({addr: addr(), x: x});
-            case 0x64:
-                JUMPj({addr: addr(), x: x});
-            case 0x65:
-                JPLj({addr: addr(), x: x});
-            case 0x66:
-                JOVj({addr: addr(), x: x});
-            case 0x70:
-                PUSHj({addr: addr(), x: x});
-            case 0x71:
-                POPp({r: r_r1});
-            case 0x80:
-                CALLj({addr: addr(), x: x});
-            case 0x81:
-                RETn;
-            case 0xf0:
-                SVCj({addr: addr(), x: x});
+            case 0x00: N({mnemonic: NOP});
+            case 0x10: I({
+                    mnemonic: LD,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x11: I({
+                    mnemonic: ST,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x12: I({
+                    mnemonic: LAD,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x14: R({mnemonic: LD, r1: r_r1, r2: r2});
+            case 0x20: I({
+                    mnemonic: ADDA,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x21: I({
+                    mnemonic: SUBA,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x22: I({
+                    mnemonic: ADDL,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x23: I({
+                    mnemonic: SUBL,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x24: R({mnemonic: ADDA, r1: r_r1, r2: r2});
+            case 0x25: R({mnemonic: SUBA, r1: r_r1, r2: r2});
+            case 0x26: R({mnemonic: ADDL, r1: r_r1, r2: r2});
+            case 0x27: R({mnemonic: SUBL, r1: r_r1, r2: r2});
+            case 0x30: I({
+                    mnemonic: AND,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x31: I({
+                    mnemonic: OR,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x32: I({
+                    mnemonic: XOR,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x34: R({mnemonic: AND, r1: r_r1, r2: r2});
+            case 0x35: R({mnemonic: OR, r1: r_r1, r2: r2});
+            case 0x36: R({mnemonic: XOR, r1: r_r1, r2: r2});
+            case 0x40: I({
+                    mnemonic: CPA,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x41: I({
+                    mnemonic: CPL,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x44: R({mnemonic: CPA, r1: r_r1, r2: r2});
+            case 0x45: R({mnemonic: CPL, r1: r_r1, r2: r2});
+            case 0x50: I({
+                    mnemonic: SLA,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x51: I({
+                    mnemonic: SRA,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x52: I({
+                    mnemonic: SLA,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x53: I({
+                    mnemonic: SLL,
+                    r: r_r1,
+                    addr: addr(),
+                    x: x
+                });
+            case 0x61: J({mnemonic: JMI, addr: addr(), x: x,});
+            case 0x62: J({mnemonic: JNZ, addr: addr(), x: x,});
+            case 0x63: J({mnemonic: JZE, addr: addr(), x: x,});
+            case 0x64: J({mnemonic: JUMP, addr: addr(), x: x,});
+            case 0x65: J({mnemonic: JPL, addr: addr(), x: x,});
+            case 0x66: J({mnemonic: JOV, addr: addr(), x: x,});
+            case 0x70: J({mnemonic: PUSH, addr: addr(), x: x,});
+            case 0x71: P({mnemonic: POP, r: r_r1});
+            case 0x80: J({mnemonic: CALL, addr: addr(), x: x,});
+            case 0x81: N({mnemonic: RET});
+            case 0xf0: J({mnemonic: SVC, addr: addr(), x: x,});
 
             case _:
                 throw new Exception("invalid instruction.");
@@ -148,106 +190,116 @@ class Comet2 {
         trace(mnemonic);
         // TODO: FR 変更
         switch (mnemonic) {
-            case LDr(o):
-                state.gr[o.r1] = state.memory[state.gr[o.r2]];
-            case LDi(o):
-                state.gr[o.r] = state.memory[calcAddr(o.addr, o.x)];
-            case STi(o):
-                state.memory[calcAddr(o.addr, o.x)] = state.gr[o.r];
-            case LADi(o):
-                state.gr[o.r] = new Word(calcAddr(o.addr, o.x));
-            case ADDAr(o), ADDLr(o):
-                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) + state.gr[o.r2]);
-            case ADDAi(o), ADDLi(o):
-                state.gr[o.r] = new Word((state.gr[o.r] : Int) + state.memory[calcAddr(o.addr, o.x)]);
-            case SUBAr(o), SUBLr(o):
-                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) - state.gr[o.r2]);
-            case SUBAi(o), SUBLi(o):
-                state.gr[o.r] = new Word((state.gr[o.r] : Int) - state.memory[calcAddr(o.addr, o.x)]);
-            case ANDr(o):
-                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) & state.gr[o.r2]);
-            case ANDi(o):
-                state.gr[o.r] = new Word((state.gr[o.r] : Int) & state.memory[calcAddr(o.addr, o.x)]);
-            case ORr(o):
-                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) | state.gr[o.r2]);
-            case ORi(o):
-                state.gr[o.r] = new Word((state.gr[o.r] : Int) | state.memory[calcAddr(o.addr, o.x)]);
-            case XORr(o):
-                state.gr[o.r1] = new Word((state.gr[o.r1] : Int) ^ state.gr[o.r2]);
-            case XORi(o):
-                state.gr[o.r] = new Word((state.gr[o.r] : Int) ^ state.memory[calcAddr(o.addr, o.x)]);
-
-            case CPAr(o):
-                state.fr.zf = state.gr[o.r1].toSigned() == state.gr[o.r2].toSigned();
-                state.fr.sf = state.gr[o.r1].toSigned() < state.gr[o.r2].toSigned();
-            case CPAi(o):
-                state.fr.zf = state.gr[o.r].toSigned() == new Word(calcAddr(o.addr, o.x)).toSigned();
-                state.fr.sf = state.gr[o.r].toSigned() < new Word(calcAddr(o.addr, o.x)).toSigned();
-            case CPLr(o):
-                state.fr.zf = state.gr[o.r1].toUnsigned() == state.gr[o.r2].toUnsigned();
-                state.fr.sf = state.gr[o.r1].toUnsigned() < state.gr[o.r2].toUnsigned();
-            case CPLi(o):
-                state.fr.zf = state.gr[o.r].toUnsigned() == calcAddr(o.addr, o.x).toUnsigned();
-                state.fr.sf = state.gr[o.r].toUnsigned() < calcAddr(o.addr, o.x).toUnsigned();
-
-            case SLAi(o):
-                state.gr[o.r] = state.gr[o.r].sla(calcAddr(o.addr, o.x));
-            case SRAi(o):
-                state.gr[o.r] = state.gr[o.r] >> calcAddr(o.addr, o.x);
-            case SLLi(o):
-                state.gr[o.r] = state.gr[o.r] << calcAddr(o.addr, o.x);
-            case SRLi(o):
-                state.gr[o.r] = state.gr[o.r] >>> calcAddr(o.addr, o.x);
-
-            case JPLj(o):
-                if (!state.fr.sf && !state.fr.zf) {
-                    state.pr = calcAddr(o.addr, o.x);
-                    return false;
+            case R(i):
+                switch (i.mnemonic) {
+                    case LD:
+                        state.gr[i.r1] = state.memory[state.gr[i.r2]];
+                    case ADDA, ADDL:
+                        state.gr[i.r1] = new Word((state.gr[i.r1] : Int) + state.gr[i.r2]);
+                    case SUBA, SUBL:
+                        state.gr[i.r1] = new Word((state.gr[i.r1] : Int) - state.gr[i.r2]);
+                    case AND:
+                        state.gr[i.r1] = new Word((state.gr[i.r1] : Int) & state.gr[i.r2]);
+                    case OR:
+                        state.gr[i.r1] = new Word((state.gr[i.r1] : Int) | state.gr[i.r2]);
+                    case XOR:
+                        state.gr[i.r1] = new Word((state.gr[i.r1] : Int) ^ state.gr[i.r2]);
+                    case CPA:
+                        state.fr.zf = state.gr[i.r1].toSigned() == state.gr[i.r2].toSigned();
+                        state.fr.sf = state.gr[i.r1].toSigned() < state.gr[i.r2].toSigned();
+                    case CPL:
+                        state.fr.zf = state.gr[i.r1].toUnsigned() == state.gr[i.r2].toUnsigned();
+                        state.fr.sf = state.gr[i.r1].toUnsigned() < state.gr[i.r2].toUnsigned();
                 }
-            case JMIj(o):
-                if (state.fr.sf) {
-                    state.pr = calcAddr(o.addr, o.x);
-                    return false;
+            case I(i):
+                switch (i.mnemonic) {
+                    case LD:
+                        state.gr[i.r] = state.memory[calcAddr(i.addr, i.x)];
+                    case ST:
+                        state.memory[calcAddr(i.addr, i.x)] = state.gr[i.r];
+                    case LAD:
+                        state.gr[i.r] = new Word(calcAddr(i.addr, i.x));
+                    case ADDA, ADDL:
+                        state.gr[i.r] = new Word((state.gr[i.r] : Int) + state.memory[calcAddr(i.addr, i.x)]);
+                    case SUBA, SUBL:
+                        state.gr[i.r] = new Word((state.gr[i.r] : Int) - state.memory[calcAddr(i.addr, i.x)]);
+                    case AND:
+                        state.gr[i.r] = new Word((state.gr[i.r] : Int) & state.memory[calcAddr(i.addr, i.x)]);
+                    case OR:
+                        state.gr[i.r] = new Word((state.gr[i.r] : Int) | state.memory[calcAddr(i.addr, i.x)]);
+                    case XOR:
+                        state.gr[i.r] = new Word((state.gr[i.r] : Int) ^ state.memory[calcAddr(i.addr, i.x)]);
+                    case CPA:
+                        state.fr.zf = state.gr[i.r].toSigned() == new Word(calcAddr(i.addr, i.x)).toSigned();
+                        state.fr.sf = state.gr[i.r].toSigned() < new Word(calcAddr(i.addr, i.x)).toSigned();
+                    case CPL:
+                        state.fr.zf = state.gr[i.r].toUnsigned() == calcAddr(i.addr, i.x).toUnsigned();
+                        state.fr.sf = state.gr[i.r].toUnsigned() < calcAddr(i.addr, i.x).toUnsigned();
+                    case SLA:
+                        state.gr[i.r] = state.gr[i.r].sla(calcAddr(i.addr, i.x));
+                    case SRA:
+                        state.gr[i.r] = state.gr[i.r] >> calcAddr(i.addr, i.x);
+                    case SLL:
+                        state.gr[i.r] = state.gr[i.r] << calcAddr(i.addr, i.x);
+                    case SRL:
+                        state.gr[i.r] = state.gr[i.r] >>> calcAddr(i.addr, i.x);
                 }
-            case JNZj(o):
-                if (!state.fr.zf) {
-                    state.pr = calcAddr(o.addr, o.x);
-                    return false;
+            case J(i):
+                switch (i.mnemonic) {
+                    case JPL:
+                        if (!state.fr.sf && !state.fr.zf) {
+                            state.pr = calcAddr(i.addr, i.x);
+                            return false;
+                        }
+                    case JMI:
+                        if (state.fr.sf) {
+                            state.pr = calcAddr(i.addr, i.x);
+                            return false;
+                        }
+                    case JNZ:
+                        if (!state.fr.zf) {
+                            state.pr = calcAddr(i.addr, i.x);
+                            return false;
+                        }
+                    case JZE:
+                        if (state.fr.zf) {
+                            state.pr = calcAddr(i.addr, i.x);
+                            return false;
+                        }
+                    case JOV:
+                        if (state.fr.of) {
+                            state.pr = calcAddr(i.addr, i.x);
+                            return false;
+                        }
+                    case JUMP:
+                        state.pr = calcAddr(i.addr, i.x);
+                        return false;
+                    case PUSH:
+                        push(calcAddr(i.addr, i.x));
+                    case CALL:
+                        push(state.pr);
+                        state.pr = calcAddr(i.addr, i.x);
+                        return false;
+                    case SVC:
+                        throw new Exception("not implemeted...");
                 }
-            case JZEj(o):
-                if (state.fr.zf) {
-                    state.pr = calcAddr(o.addr, o.x);
-                    return false;
+            case P(i):
+                switch (i.mnemonic) {
+                    case POP:
+                        state.gr[i.r] = pop();
                 }
-            case JOVj(o):
-                if (state.fr.of) {
-                    state.pr = calcAddr(o.addr, o.x);
-                    return false;
+            case N(i):
+                switch (i.mnemonic) {
+                    case NOP:
+                    case RET:
+                        final addr = pop();
+                        if (addr == 0xffff) {
+                            return true;
+                        } else {
+                            state.pr = addr;
+                            return false;
+                        }
                 }
-            case JUMPj(o):
-                state.pr = calcAddr(o.addr, o.x);
-                return false;
-
-            case PUSHj(o):
-                push(calcAddr(o.addr, o.x));
-            case POPp(o):
-                state.gr[o.r] = pop();
-
-            case CALLj(o):
-                push(state.pr);
-                state.pr = calcAddr(o.addr, o.x);
-                return false;
-            case RETn:
-                final addr = pop();
-                if (addr == 0xffff) {
-                    return true;
-                } else {
-                    state.pr = addr;
-                    return false;
-                }
-            case NOPn:
-            case _:
-                throw new Exception("not implemeted mnemonic.");
         }
         return false;
     }
@@ -260,13 +312,8 @@ class Comet2 {
         state.memory[--state.sp] = v;
     }
 
-    function calcAddr(addr:PAddr, x:Nullable<I1to7>) {
-        return switch (addr) {
-            case Label(label):
-                throw new Exception("unreachable.");
-            case Constant(value):
-                return new Word((value : Int) + state.gr[(x : Nullable<Int>).getOrElse(0)]);
-        }
+    function calcAddr(addr:Word, x:Nullable<I1to7>) {
+        return new Word((addr : Int) + state.gr[(x : Nullable<Int>).getOrElse(0)]);
     }
 }
 

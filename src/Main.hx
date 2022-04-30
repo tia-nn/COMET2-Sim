@@ -1,6 +1,7 @@
 package;
 
 import assembler.Assembler;
+import machine.Comet2;
 import parser.Parser;
 import preprocessor.Preprocessor;
 import preprocessor.StartEndChecker;
@@ -45,13 +46,14 @@ class Main {
 
         // File.write("dump.casl", false).write(Bytes.ofString(PInstOrDataTraceTools.toString(instructions.instructions, instructions.startLabel)));
 
-        final assembly = Assembler.assembleAll(object.instructions);
-        trace(assembly.map(a -> a.toString("")));
+        final offset = 5;
+        final assembly = Assembler.assembleAll(object.instructions, object.startLabel, 5);
+        trace(assembly.text.map(a -> a.toString("")));
 
-        // final machine = new Comet2(assembly, 0);
-        // while (!machine.step()) {
-        // }
+        final machine = new Comet2(assembly.text, assembly.entry, 5);
+        while (!machine.step()) {
+        }
 
-        // trace(machine.state);
+        trace(machine.state);
     }
 }

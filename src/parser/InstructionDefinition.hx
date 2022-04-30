@@ -13,11 +13,10 @@ import extype.Nullable;
 // Linked
 enum LinkedInstruction {
     R(i:LinkedRInstruction);
-    I(i:LinkedInstruction);
+    I(i:LinkedIInstruction);
     J(i:LinkedJInstruction);
     P(i:LinkedPInstruction);
     N(i:LinkedNInstruction);
-    Data(d:Word);
 }
 
 typedef LinkedROperand = {

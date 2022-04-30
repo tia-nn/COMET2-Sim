@@ -10,12 +10,12 @@ import parser.InstructionDefinition.ObjectJOperand;
 using Lambda;
 
 class Assembler {
-    public static function assembleAll(insts:Array<ObjectInstructionWithLabel>):Array<Word> {
+    public static function assembleAll(insts:Array<ObjectInstructionWithLabel>, startLabel:String, offset:Int) {
         final labelTable = new Map();
         final usingLableTable = new Map();
         final text = insts.fold((item, result:Array<Word>) -> {
             final r = assemble(item.inst);
-            item.label.iter(label -> labelTable.set(label, result.length));
+            item.label.iter(label -> labelTable.set(label, result.length + offset));
             if (r.useLabel != null)
                 usingLableTable.set(r.useLabel, result.length + 1);
             return result.concat(r.text);
@@ -25,7 +25,7 @@ class Assembler {
             text[i] = new Word(labelTable.get(label));
         }
 
-        return text;
+        return {text: text, entry: labelTable.get(startLabel)};
     }
 
     static function assemble(inst:ObjectInstruction):{text:Array<Word>, ?useLabel:String} {
