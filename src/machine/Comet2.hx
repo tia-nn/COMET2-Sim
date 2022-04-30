@@ -325,13 +325,8 @@ class Comet2 {
     }
 
     function bios() {
-        final f = state.gr[7];
-        if (f == 0xf000) {
-            return true;
-        } else {
-            // TODO: int 2;
-            return false;
-        }
+        // TODO: int 2;
+        return false;
     }
 
     function calcAddr(addr:Word, x:Nullable<I1to7>) {

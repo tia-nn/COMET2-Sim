@@ -5,6 +5,9 @@ import machine.Comet2.FrozenComet2State;
 import sys.io.File;
 import sys.io.FileOutput;
 
+using Lambda;
+using StringTools;
+
 class Comet2Dump {
     public static function dump(state:FrozenComet2State, ?file:FileOutput) {
         if (file == null) {
@@ -24,7 +27,8 @@ class Comet2Dump {
             final c = [for (b in a) b.toString()].join(" ");
             memory.push(c);
         }
-        final memory = memory.join("\n");
+
+        final memory = memory.mapi((i, s) -> '0x${(i * 8).hex(4)} ${s}').join("\n");
 
         file.write(Bytes.ofString(gr + sp + pr + fr + memory + "\n"));
     }

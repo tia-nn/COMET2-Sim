@@ -500,7 +500,7 @@ class Parser {
     }
 
     function parseDSOperand():ParseResult<Word> {
-        return parseDec();
+        return parseNumberConstant();
     }
 
     function parseDCOperand():ParseResult<Array<Word>> {
@@ -651,7 +651,7 @@ class Parser {
         return token.fold(() -> Unmatched(""), token -> {
             if (token.token.match(String)) {
                 tokens = tokens.slice(1);
-                final words = strToWords(getStringLiteralValue(token.src));
+                final words = strToWords(getStringValue(token.src));
                 words.warnings.iter(e -> lineWarnings.push({value: e.value, col: e.col + token.col + 1 /* "stringConstant" の " の +1 */}));
                 return Success(words.value.map(i -> new Word(i)));
             }

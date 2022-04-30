@@ -1,5 +1,6 @@
 package;
 
+import machine.Comet2Display;
 import machine.Comet2Dump;
 import sys.io.File;
 
@@ -7,7 +8,7 @@ class Comet2 {
     static function main() {
         final options = {
             rootPath: "comet2",
-            displayPath: "comet2.txt",
+            displayPath: "comet2display.txt",
         }
         var i = 0;
         while (i < Sys.args().length) {
@@ -37,11 +38,13 @@ class Comet2 {
         final bytes = File.read(kernelPath).readAll();
         final words = [];
 
+        final displayFile = File.write(displayPath);
+
         for (i in 0...Std.int(bytes.length / 2)) {
             words.push(new Word(bytes.getUInt16(i * 2)));
         }
 
-        final comet2 = new machine.Comet2(words, 0, 0);
+        final comet2 = new Comet2Display(words, 0, 0, displayFile);
         final dump = File.write("comet2dump.txt");
 
         while (!comet2.step()) {
