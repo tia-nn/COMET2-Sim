@@ -109,6 +109,8 @@ class Assembler {
                         assembleJOperand(0x80, i);
                     case SVC:
                         assembleJOperand(0xf0, i);
+                    case INT:
+                        assembleJOperand(0xf1, i);
                 }
             case P(i):
                 switch (i.mnemonic) {

@@ -247,6 +247,7 @@ enum JMnemonic {
     PUSH;
     CALL;
     SVC;
+    INT;
 }
 
 enum PMnemonic {

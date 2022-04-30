@@ -3,7 +3,9 @@ PRG	START
 	LD	GR1,=5
 	ADDA	GR1,BB
 	ST	GR1,CC
-	RET
+
+	LD GR7, =#f000
+	INT 8
 
 ; AA	DC	5
 BB	DC	6

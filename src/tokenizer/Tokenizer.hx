@@ -155,6 +155,7 @@ class Tokenizer {
         new Tuple2(~/^(call)(\s|$)/i, MnemonicToken.CALL),
         new Tuple2(~/^(ret)(\s|$)/i, MnemonicToken.RET),
         new Tuple2(~/^(svc)(\s|$)/i, MnemonicToken.SVC),
+        new Tuple2(~/^(int)(\s|$)/i, MnemonicToken.INT),
         new Tuple2(~/^(nop)(\s|$)/i, MnemonicToken.NOP),
         new Tuple2(~/^(start)(\s|$)/i, MnemonicToken.START),
         new Tuple2(~/^(end)(\s|$)/i, MnemonicToken.END),

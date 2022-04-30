@@ -2,6 +2,7 @@ package;
 
 import haxe.io.Bytes;
 import parser.Parser;
+import preprocessor.ObjectDump;
 import preprocessor.Preprocessor;
 import preprocessor.StartEndChecker;
 import sys.io.File;
@@ -12,6 +13,7 @@ class Assembler {
         final options = {
             srcFile: null,
             outPath: null,
+            dump: false,
         }
         var i = 0;
         while (i < Sys.args().length) {
@@ -21,20 +23,23 @@ class Assembler {
                     options.srcFile = Sys.args()[++i];
                 case "-o", "--out":
                     options.outPath = Sys.args()[++i];
+                case "-d", "--dump":
+                    options.dump = true;
+                    i++;
                 case _:
                     i++;
             }
         }
 
         if (options.srcFile == null || options.outPath == null) {
-            trace("usage: assembler -s [source file path]");
+            trace("usage: assembler -s [source file path] -o [output file] {-d}");
             return;
         }
 
-        assemble(options.srcFile, options.outPath);
+        assemble(options.srcFile, options.outPath, options.dump);
     }
 
-    static function assemble(src:String, out:String) {
+    static function assemble(src:String, out:String, dump:Bool) {
         final bytes = File.read(src).readAll();
         final src = bytes.getString(0, bytes.length, UTF8);
 
@@ -68,6 +73,7 @@ class Assembler {
 
         final offset = 0;
         final assembly = assembler.Assembler.assembleAll(object.instructions, object.startLabel, offset);
+        ObjectDump.dump(object);
 
         final bytes = Bytes.alloc(assembly.text.length * 2);
         for (i => w in assembly.text) {

@@ -884,6 +884,8 @@ class Parser {
                         Success(CALL);
                     case SVC:
                         Success(SVC);
+                    case INT:
+                        Success(INT);
                     case _:
                         Unmatched("");
                 }

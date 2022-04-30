@@ -11,6 +11,8 @@ import parser.InstructionDefinition.LinkedInstruction;
 class Comet2 {
     var state:Comet2State;
 
+    static final INT_VEC_ADDR = 0x2000;
+
     public function new(insts:ReadOnlyArray<Word>, entry:Int = 0, offest:Int = 0) {
         state = {
             gr: [
@@ -32,8 +34,6 @@ class Comet2 {
             },
             memory: [for (i in 0...65536) new Word(0)],
         };
-
-        state.memory[0xffff] = new Word(0xffff);
 
         state.pr = new Word(entry);
 
@@ -178,6 +178,7 @@ class Comet2 {
             case 0x80: J({mnemonic: CALL, addr: addr(), x: x,});
             case 0x81: N({mnemonic: RET});
             case 0xf0: J({mnemonic: SVC, addr: addr(), x: x,});
+            case 0xf1: J({mnemonic: INT, addr: addr(), x: x,});
 
             case _:
                 throw new Exception("invalid instruction.");
@@ -281,6 +282,22 @@ class Comet2 {
                         return false;
                     case SVC:
                         throw new Exception("not implemeted...");
+                    case INT:
+                        final cause = calcAddr(i.addr, i.x);
+                        if (cause.toUnsigned() > 15) {
+                            throw new Exception("int cause over range");
+                            // TODO: int 1;
+                        } else if (cause == 8) {
+                            if (bios())
+                                return true;
+                        } else {
+                            final routine = INT_VEC_ADDR + cause;
+                            // TODO: 割り込み禁止
+                            // TODO: RPUSH
+                            push(state.pr);
+                            state.pr = new Word(routine);
+                            return false;
+                        }
                 }
             case P(i):
                 switch (i.mnemonic) {
@@ -292,12 +309,8 @@ class Comet2 {
                     case NOP:
                     case RET:
                         final addr = pop();
-                        if (addr == 0xffff) {
-                            return true;
-                        } else {
-                            state.pr = addr;
-                            return false;
-                        }
+                        state.pr = addr;
+                        return false;
                 }
         }
         return false;
@@ -309,6 +322,16 @@ class Comet2 {
 
     function push(v:Word) {
         state.memory[--state.sp] = v;
+    }
+
+    function bios() {
+        final f = state.gr[7];
+        if (f == 0xf000) {
+            return true;
+        } else {
+            // TODO: int 2;
+            return false;
+        }
     }
 
     function calcAddr(addr:Word, x:Nullable<I1to7>) {

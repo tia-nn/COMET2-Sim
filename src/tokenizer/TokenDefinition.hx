@@ -51,7 +51,9 @@ enum MnemonicToken {
     CALL;
     RET;
     SVC;
+    INT;
     NOP;
+
     START;
     END;
     DS;
