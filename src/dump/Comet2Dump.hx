@@ -1,7 +1,7 @@
-package machine;
+package dump;
 
 import haxe.io.Bytes;
-import machine.Comet2.FrozenComet2State;
+import machine.Comet2State;
 import sys.io.File;
 import sys.io.FileOutput;
 

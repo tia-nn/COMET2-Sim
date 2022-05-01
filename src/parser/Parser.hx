@@ -1,31 +1,14 @@
 package parser;
 
-import Word.I0to7;
-import Word.I1to7;
 import extype.Exception;
 import extype.Nullable;
 import extype.ReadOnlyArray;
 import extype.Tuple.Tuple2;
 import haxe.iterators.StringKeyValueIteratorUnicode;
-import parser.InstructionDefinition.AInstruction;
-import parser.InstructionDefinition.IMnemonic;
-import parser.InstructionDefinition.JMnemonic;
-import parser.InstructionDefinition.NMnemonic;
-import parser.InstructionDefinition.PMnemonic;
-import parser.InstructionDefinition.ParseReport;
-import parser.InstructionDefinition.ParsedAddr;
-import parser.InstructionDefinition.ParsedIOperand;
-import parser.InstructionDefinition.ParsedInstruction;
-import parser.InstructionDefinition.ParsedInstructionWithLabel;
-import parser.InstructionDefinition.ParsedInstructionWithLine;
-import parser.InstructionDefinition.ParsedJOperand;
-import parser.InstructionDefinition.ParsedPOperand;
-import parser.InstructionDefinition.ParsedROperand;
-import parser.InstructionDefinition.RMnemonic;
-import parser.InstructionDefinition.WithCol;
-import parser.InstructionDefinition.WithPos;
 import tokenizer.TokenDefinition.Token;
 import tokenizer.TokenDefinition.TokenInfo;
+import types.Instruction;
+import types.Word;
 
 using Lambda;
 using StringTools;

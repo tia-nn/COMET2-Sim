@@ -1,8 +1,8 @@
 ./dependencies.hxml
 
 --class-path src
---main Assembler
---hl bin/assembler.hl
+--main Casl2
+--hl bin/casl2.hl
 
 --next
 ./dependencies.hxml

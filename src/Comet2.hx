@@ -1,9 +1,9 @@
 package;
 
-import machine.Comet2Bios;
+import dump.Comet2Dump;
 import machine.Comet2Display;
-import machine.Comet2Dump;
 import sys.io.File;
+import types.Word;
 
 class Comet2 {
     static function main() {

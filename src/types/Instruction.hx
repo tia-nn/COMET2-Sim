@@ -1,17 +1,19 @@
-package parser;
-
-import Word.I0to7;
-import Word.I1to7;
-import extype.Nullable;
-import extype.ReadOnlyArray;
+package types;
 
 /**
-    parse phase:
+    compile phase:
     - Linked
     - Object
     - Parsed
 **/
+import extype.Nullable;
+import extype.ReadOnlyArray;
+import types.Word;
+
+typedef Instruction = LinkedInstruction;
+
 // Linked
+
 enum LinkedInstruction {
     R(i:LinkedRInstruction);
     I(i:LinkedIInstruction);

@@ -1,17 +1,15 @@
-package assembler;
+package casl2;
 
 import extype.Map;
 import extype.Nullable;
 import extype.Pair;
 import extype.ReadOnlyArray;
-import parser.InstructionDefinition.ObjectIInstruction;
-import parser.InstructionDefinition.ObjectInstruction;
-import parser.InstructionDefinition.ObjectInstructionWithLabel;
-import parser.InstructionDefinition.ObjectJOperand;
+import types.Instruction;
+import types.Word;
 
 using Lambda;
 
-class Assembler {
+class Casl2 {
     public static function assembleAll(insts:ReadOnlyArray<ObjectInstructionWithLabel>, startLabel:String, offset:Int) {
         final labelTable = new Map();
         final usingLableTable:Array<Pair<String, Int>> = [];

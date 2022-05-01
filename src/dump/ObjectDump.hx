@@ -1,7 +1,7 @@
-package preprocessor;
+package dump;
 
+import casl2macro.Casl2MacroExpand.ObjectFile;
 import haxe.io.Bytes;
-import preprocessor.Preprocessor.ObjectFile;
 import sys.io.File;
 import sys.io.FileOutput;
 

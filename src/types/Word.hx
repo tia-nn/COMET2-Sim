@@ -1,4 +1,4 @@
-package;
+package types;
 
 import extype.Nullable;
 import extype.ReadOnlyArray;

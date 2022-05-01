@@ -1,14 +1,14 @@
 package;
 
+import casl2macro.Casl2MacroExpand;
+import casl2macro.StartEndChecker;
+import dump.ObjectDump;
 import haxe.io.Bytes;
 import parser.Parser;
-import preprocessor.ObjectDump;
-import preprocessor.Preprocessor;
-import preprocessor.StartEndChecker;
 import sys.io.File;
 import tokenizer.Tokenizer;
 
-class Assembler {
+class Casl2 {
     static function main() {
         final options = {
             srcFile: null,
@@ -69,10 +69,10 @@ class Assembler {
                 return;
         }
 
-        final object = Preprocessor.preprocess(node);
+        final object = Casl2MacroExpand.macroExpand(node);
 
         final offset = 0;
-        final assembly = assembler.Assembler.assembleAll(object.instructions, object.startLabel, offset);
+        final assembly = casl2.Casl2.assembleAll(object.instructions, object.startLabel, offset);
         ObjectDump.dump(object);
 
         final bytes = Bytes.alloc(assembly.text.length * 2);

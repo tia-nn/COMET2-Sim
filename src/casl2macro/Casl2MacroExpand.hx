@@ -1,21 +1,13 @@
-package preprocessor;
+package casl2macro;
 
-import Word.I0to7;
-import Word.I1to7;
 import extype.Exception;
 import extype.Nullable;
 import extype.ReadOnlyArray;
 import extype.Tuple.Tuple2;
-import parser.InstructionDefinition.ObjectAddr;
-import parser.InstructionDefinition.ObjectIInstruction;
-import parser.InstructionDefinition.ObjectInstructionWithLabel;
-import parser.InstructionDefinition.ObjectJInstruction;
-import parser.InstructionDefinition.ParsedAddr;
-import parser.InstructionDefinition.ParsedIInstruction;
-import parser.InstructionDefinition.ParsedInstructionWithLine;
-import parser.InstructionDefinition.ParsedJInstruction;
+import types.Instruction;
+import types.Word;
 
-class Preprocessor {
+class Casl2MacroExpand {
     var literalLabelNumber = 0;
     var literals:Array<ObjectInstructionWithLabel> = [];
     var programLabel:Null<String> = null;
@@ -31,8 +23,8 @@ class Preprocessor {
         instructions = [];
     }
 
-    public static function preprocess(src:ReadOnlyArray<ParsedInstructionWithLine>):ObjectFile {
-        final preprocessor = new Preprocessor();
+    public static function macroExpand(src:ReadOnlyArray<ParsedInstructionWithLine>):ObjectFile {
+        final preprocessor = new Casl2MacroExpand();
         preprocessor.run(src);
 
         final literals = if (preprocessor.literals.length != 0) [

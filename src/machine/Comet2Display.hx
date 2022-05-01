@@ -3,6 +3,7 @@ package machine;
 import extype.ReadOnlyArray;
 import haxe.io.Bytes;
 import sys.io.FileOutput;
+import types.Word;
 
 class Comet2Display extends Comet2Bios {
     final displayFile:FileOutput;

@@ -1,7 +1,7 @@
-package preprocessor;
+package casl2macro;
 
 import extype.ReadOnlyArray;
-import parser.InstructionDefinition;
+import types.Instruction;
 
 class StartEndChecker {
     public static function check(src:ReadOnlyArray<ParsedInstructionWithLine>):ReadOnlyArray<{message:String, line:Int}> {
