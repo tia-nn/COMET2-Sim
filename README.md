@@ -39,6 +39,12 @@ MACRO_NAME MACRO $arg1, $arg2, $hoge, ...
 - RETI 割り込み処理からのリターン
 - LDM, STM 割り込みマスク書き込み・読み込み
 
+- FR に特権レベル PL を追加 (0: スーパーバイザ 1: ユーザ)
+- FR に割り込み許可状態 IE を追加 (0: 禁止 1: 許可)
+- 割り込み要因マスクレジスタ IM を追加 (内部レジスタ)
+
+- TODO: メモリ保護機構
+
 - メモリマップ
   - 0x0000 - 0x1fff (length 0x2000) : カーネルプログラム (余ったら自由に)
   - 0x2000 - 0x200f (length 0x10) : 割り込みベクタ
@@ -75,10 +81,12 @@ MACRO_NAME MACRO $arg1, $arg2, $hoge, ...
 
 ### 一般向け拡張
 
--  マクロ定義
+- マクロ定義
+- ELF 形式対応
 
 ### OS 実装向け拡張
 
-- All.
+- タイマー割り込み
+- メモリ保護
 
 参考: [COMET-II互換プロセッサによるCPU設計演習環境の開発](https://www.ieice.org/publications/conference-FIT-DVDs/FIT2002/pdf/C/C_1.PDF)
