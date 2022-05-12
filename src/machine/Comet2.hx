@@ -65,9 +65,6 @@ class Comet2 {
         final mnemonic = fetchDecode();
 
         // TODO: FR 変更
-        trace(state.gr.map(a -> a.toString()));
-        trace(state.pr, mnemonic);
-
         switch (mnemonic) {
             case R(i):
                 switch (i.mnemonic) {
@@ -83,7 +80,6 @@ class Comet2 {
                         state.gr[i.r1] = new Word((state.gr[i.r1] : Int) | state.gr[i.r2]);
                     case XOR:
                         state.gr[i.r1] = new Word((state.gr[i.r1] : Int) ^ state.gr[i.r2]);
-                        trace('xor', state.gr[i.r1].toString(), state.gr[i.r2].toString());
                     case CPA:
                         state.fr.zf = state.gr[i.r1].toSigned() == state.gr[i.r2].toSigned();
                         state.fr.sf = state.gr[i.r1].toSigned() < state.gr[i.r2].toSigned();

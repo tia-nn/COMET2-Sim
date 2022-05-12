@@ -6,10 +6,10 @@ PRG	START
 	lad gr3, 0  ; is low
 
 loop	ld gr0, 0, gr1
-		cpl gr0, 0
+		cpl gr0, =0
 		jze exit
 
-		cpl gr3, 0
+		cpl gr3, =0
 		jnz low
 high		sll gr0, 8
 			st gr0, #2010, gr2
