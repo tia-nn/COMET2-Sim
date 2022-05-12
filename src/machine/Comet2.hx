@@ -4,6 +4,7 @@ import extype.Exception;
 import extype.Nullable;
 import extype.ReadOnlyArray;
 import machine.Comet2State;
+import sys.thread.Lock;
 import types.Instruction;
 import types.Word;
 
@@ -12,6 +13,7 @@ using machine.WordTools;
 @:allow(Main)
 class Comet2 {
     var state:Comet2State;
+    final intQueueLock:Lock;
 
     static final INT_VEC_ADDR = 0x2000;
 
@@ -34,10 +36,13 @@ class Comet2 {
                 sf: false,
                 zf: false,
             },
+            intQueue: [],
             memory: [for (i in 0...65536) new Word(0)],
+            isExited: false,
         };
-
         state.pr = new Word(entry);
+
+        intQueueLock = new Lock();
 
         load(insts, offest);
     }
@@ -125,55 +130,37 @@ class Comet2 {
                     case JPL:
                         if (!state.fr.sf && !state.fr.zf) {
                             state.pr = calcAddr(i.addr, i.x);
-                            return false;
                         }
                     case JMI:
                         if (state.fr.sf) {
                             state.pr = calcAddr(i.addr, i.x);
-                            return false;
                         }
                     case JNZ:
                         if (!state.fr.zf) {
                             state.pr = calcAddr(i.addr, i.x);
-                            return false;
                         }
                     case JZE:
                         if (state.fr.zf) {
                             state.pr = calcAddr(i.addr, i.x);
-                            return false;
                         }
                     case JOV:
                         if (state.fr.of) {
                             state.pr = calcAddr(i.addr, i.x);
-                            return false;
                         }
                     case JUMP:
                         state.pr = calcAddr(i.addr, i.x);
-                        return false;
                     case PUSH:
                         push(calcAddr(i.addr, i.x));
                     case CALL:
                         push(state.pr);
                         state.pr = calcAddr(i.addr, i.x);
-                        return false;
                     case SVC:
                         throw new Exception("not implemeted...");
                     case INT:
                         final cause = calcAddr(i.addr, i.x);
-                        if (cause.toUnsigned() > 15) {
-                            throw new Exception("int cause over range");
-                            // TODO: int 1;
-                        } else if (cause == 8) {
-                            if (bios())
-                                return true;
-                        } else {
-                            final routine = INT_VEC_ADDR + cause;
-                            // TODO: 割り込み禁止
-                            // TODO: RPUSH
-                            push(state.pr);
-                            state.pr = new Word(routine);
-                            return false;
-                        }
+                        intQueueLock.wait();
+                        state.intQueue.push(cause);
+                        intQueueLock.release();
                 }
             case P(i):
                 switch (i.mnemonic) {
@@ -186,9 +173,26 @@ class Comet2 {
                     case RET:
                         final addr = pop();
                         state.pr = addr;
-                        return false;
                 }
         }
+
+        while (true) {
+            intQueueLock.wait();
+            if (state.intQueue.length == 0) {
+                intQueueLock.release();
+                break;
+            }
+
+            final cause = state.intQueue[0];
+            state.intQueue = state.intQueue.slice(1);
+            intQueueLock.release();
+
+            if (int(cause)) {
+                state.isExited = true;
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -200,8 +204,26 @@ class Comet2 {
         state.memory[--state.sp] = v;
     }
 
+    function int(cause:Int):Bool {
+        // 割り込み禁止なら無視する.
+        if (cause > 15) {
+            throw new Exception("int cause over range");
+            state.intQueue.push(1);
+        } else if (cause == 8) {
+            if (bios())
+                return true;
+        } else {
+            final routine = INT_VEC_ADDR + cause;
+            // TODO: 割り込み禁止
+            // TODO: RPUSH
+            push(state.pr);
+            state.pr = new Word(routine);
+        }
+        return false;
+    }
+
     function bios() {
-        // TODO: int 2;
+        state.intQueue.push(1);
         return false;
     }
 
