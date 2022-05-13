@@ -122,6 +122,12 @@ class Casl2 {
                         {text: [new Word(0)]};
                     case RET:
                         {text: [new Word(0x8100)]};
+                    case IRET:
+                        {text: [new Word(0xf400)]};
+                    case EI:
+                        {text: [new Word(0xf500)]};
+                    case DI:
+                        {text: [new Word(0xf600)]};
                 }
             case Data(d):
                 {text: [d]};

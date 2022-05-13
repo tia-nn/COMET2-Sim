@@ -44,6 +44,7 @@ class Comet2 {
         state.pr = new Word(entry);
 
         intQueueLock = new Lock();
+        intQueueLock.release();
 
         load(insts, offest);
     }
@@ -65,6 +66,7 @@ class Comet2 {
         final firstWord = state.memory[state.pr++];
         final fetchSecondWord = () -> state.memory[state.pr++];
         try {
+            trace('[${state.pr - 1}] -> ${firstWord}');
             return firstWord.toInstruction(fetchSecondWord);
         } catch (e:Exception) {
             return null;
@@ -73,6 +75,8 @@ class Comet2 {
 
     public function step():Bool {
         final mnemonic = fetchDecode();
+
+        trace(mnemonic);
         final mnemonic = if (mnemonic.nonEmpty()) {
             mnemonic.getUnsafe();
         } else {
@@ -186,6 +190,16 @@ class Comet2 {
                     case RET:
                         final addr = pop();
                         state.pr = addr;
+                    case IRET:
+                        state.pr = pop();
+                        state.sp = pop();
+                        state.fr = pop().toFR();
+                        for (i in [7, 6, 5, 4, 3, 2, 1, 0])
+                            state.gr[i] = pop();
+                    case EI:
+                        state.fr.ie = true;
+                    case DI:
+                        state.fr.ie = false;
                 }
         }
 
@@ -193,6 +207,7 @@ class Comet2 {
             intQueueLock.wait();
             if (state.intQueue.length == 0) {
                 intQueueLock.release();
+
                 break;
             }
 
@@ -224,11 +239,11 @@ class Comet2 {
             if (bios())
                 return true;
         } else {
-            final routine = INT_VEC_ADDR + cause;
-            state.fr.ie = false;
+            final routine = state.memory[INT_VEC_ADDR + cause];
             for (i in 0...8)
                 push(state.gr[i]);
             push(state.fr.toWord());
+            state.fr.ie = false;
             push(state.sp);
             push(state.pr);
             state.pr = new Word(routine);

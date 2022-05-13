@@ -259,4 +259,7 @@ enum PMnemonic {
 enum NMnemonic {
     RET;
     NOP;
+    IRET;
+    EI;
+    DI;
 }
