@@ -36,7 +36,7 @@ MACRO_NAME MACRO $arg1, $arg2, $hoge, ...
 
 - int addr, x 割り込み命令
 - EI / DI 割り込み許可/禁止命令
-- RETI 割り込み処理からのリターン
+- IRET 割り込み処理からのリターン
 - LDM, STM 割り込みマスク書き込み・読み込み
 
 - FR に特権レベル PL を追加 (0: スーパーバイザ 1: ユーザ)
@@ -59,6 +59,18 @@ MACRO_NAME MACRO $arg1, $arg2, $hoge, ...
   - 4 - 7 外部要因割り込み
     - 4: タイマー
   - 8-15: ユーザ定義割り込み
+
+- 割り込み時
+  - DI
+  - push r0 ~ r7
+  - push fr
+  - push sp
+  - call ハンドラ
+- IRET
+  - pop sp
+  - pop fr
+  - pop r7 ~ r0
+  - EI
 
 - bios call
 - GR7 の値によって機能を呼び出す

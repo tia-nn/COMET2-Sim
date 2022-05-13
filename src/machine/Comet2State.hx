@@ -14,6 +14,7 @@ typedef Comet2State = {
     var isExited:Bool;
 }
 
+@:using(machine.Comet2State.Comet2FRTools)
 typedef Comet2FR = {
     /** overflow **/
     var of:Bool;
@@ -26,6 +27,25 @@ typedef Comet2FR = {
 
     /** interrupt enabled **/
     var ie:Bool;
+}
+
+class Comet2FRTools {
+    public static function toWord(fr:Comet2FR) {
+        return new Word(boolToInt(fr.of) << 15 | boolToInt(fr.sf) << 14 | boolToInt(fr.zf) << 13 | boolToInt(fr.ie) << 12);
+    }
+
+    public static function wordToFR(word:Word):Comet2FR {
+        return {
+            of: word.toUnsigned() & 0x8000 != 0,
+            sf: word.toUnsigned() & 0x4000 != 0,
+            zf: word.toUnsigned() & 0x2000 != 0,
+            ie: word.toUnsigned() & 0x1000 != 0
+        };
+    }
+
+    static function boolToInt(a:Bool) {
+        return a ? 1 : 0;
+    }
 }
 
 typedef FrozenComet2State = {

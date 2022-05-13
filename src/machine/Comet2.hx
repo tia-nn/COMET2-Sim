@@ -225,8 +225,11 @@ class Comet2 {
                 return true;
         } else {
             final routine = INT_VEC_ADDR + cause;
-            // TODO: RPUSH
             state.fr.ie = false;
+            for (i in 0...8)
+                push(state.gr[i]);
+            push(state.fr.toWord());
+            push(state.sp);
             push(state.pr);
             state.pr = new Word(routine);
         }
