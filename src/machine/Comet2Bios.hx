@@ -6,7 +6,7 @@ class Comet2Bios extends Comet2 {
         if (f == 0xf000) {
             return true;
         } else {
-            // TODO: int 2;
+            priorityIntRequire(1);
             return false;
         }
     }

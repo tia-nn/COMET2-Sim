@@ -28,7 +28,7 @@ low 		ld gr4, #2010, gr2
 end_if	jump loop
 
 exit	lad gr7, #f000  ; exit
-	int 8
+	int 3
 
 ; DATA
 
