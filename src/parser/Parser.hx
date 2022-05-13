@@ -919,6 +919,12 @@ class Parser {
                         Success(RET);
                     case NOP:
                         Success(NOP);
+                    case IRET:
+                        Success(IRET);
+                    case EI:
+                        Success(EI);
+                    case DI:
+                        Success(DI);
                     case _:
                         Unmatched("");
                 }

@@ -52,6 +52,9 @@ enum MnemonicToken {
     RET;
     SVC;
     INT;
+    IRET;
+    EI;
+    DI;
     NOP;
 
     START;

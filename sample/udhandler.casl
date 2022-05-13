@@ -1,0 +1,62 @@
+PRG	START
+
+; #2000 : 割り込みハンドラ
+
+ 	DI
+
+	lad gr0, UDHandler
+	lad gr1, 1
+	st gr0, #2000, gr1
+
+ 	EI
+
+	dc #ffff  ; 不正な命令
+
+exit nop
+	lad gr7, #f000  ; exit
+	int 3
+
+; DATA
+
+; subroutine
+
+UDHandler nop
+	lad gr1, UDHandler_message
+	call packPrint
+
+	iret
+
+UDHandler_message DC 'undefined instruction ﾊﾝﾄﾞﾗ.', 0
+
+; args
+;   GR1: String: ワード毎に一文字、下位8bit
+packPrint nop
+	lad gr7, #2010  ; frame buffer
+	lad gr2, 0  ; buffer offset
+	lad gr3, 0  ; is low
+
+loop	ld gr0, 0, gr1
+		cpl gr0, =0
+		jze packPrint_exit
+
+		cpl gr3, =0
+		jnz low
+high		sll gr0, 8
+			st gr0, #2010, gr2
+			lad gr3, 1
+			jump end_if
+
+low 		ld gr4, #2010, gr2
+			xor gr0, gr4
+			st gr0, #2010, gr2
+			lad gr3, 0
+			addl gr2, =1
+			jump end_if
+
+end_if nop
+	addl gr1, =1
+	jump loop
+
+packPrint_exit	ret
+
+	END

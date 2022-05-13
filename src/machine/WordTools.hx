@@ -1,6 +1,7 @@
 package machine;
 
 import extype.Exception;
+import machine.Comet2State.Comet2FR;
 import types.Instruction;
 import types.Word;
 
@@ -170,9 +171,24 @@ class WordTools {
                 J({mnemonic: SVC, addr: addr(), x: x,});
             case 0xf1:
                 J({mnemonic: INT, addr: addr(), x: x,});
+            case 0xf4:
+                N({mnemonic: IRET});
+            case 0xf5:
+                N({mnemonic: EI});
+            case 0xf6:
+                N({mnemonic: DI});
 
             case _:
                 throw new Exception("invalid instruction.");
         }
+    }
+
+    public static function toFR(word:Word):Comet2FR {
+        return {
+            of: word.toUnsigned() & 0x8000 != 0,
+            sf: word.toUnsigned() & 0x4000 != 0,
+            zf: word.toUnsigned() & 0x2000 != 0,
+            ie: word.toUnsigned() & 0x1000 != 0
+        };
     }
 }

@@ -2223,7 +2223,7 @@
     <td></td>
     <td></td>
     <td>2</td>
-    <td>int adr, x</td>
+    <td>INT adr, x</td>
     <td>interrupt</td>
   </tr>
   <tr>
@@ -2246,30 +2246,30 @@
   </tr>
   <tr>
     <td>4</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>IRET</td>
+    <td>return from interrupt handler</td>
   </tr>
   <tr>
     <td>5</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>EI</td>
+    <td>enable interrupt</td>
   </tr>
   <tr>
     <td>6</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>DI</td>
+    <td>disable interrupt</td>
   </tr>
   <tr>
     <td>7</td>

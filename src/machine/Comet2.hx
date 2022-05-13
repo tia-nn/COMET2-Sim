@@ -10,7 +10,6 @@ import types.Word;
 
 using machine.WordTools;
 
-@:allow(Main)
 class Comet2 {
     var state:Comet2State;
     final intQueueLock:Lock;
@@ -35,14 +34,17 @@ class Comet2 {
                 of: false,
                 sf: false,
                 zf: false,
+                ie: false,
             },
-            intQueue: [],
             memory: [for (i in 0...65536) new Word(0)],
+            intQueue: [],
+            intVecMask: new Word(0xffff),
             isExited: false,
         };
         state.pr = new Word(entry);
 
         intQueueLock = new Lock();
+        intQueueLock.release();
 
         load(insts, offest);
     }
@@ -60,14 +62,27 @@ class Comet2 {
         }
     }
 
-    function fetchDecode():LinkedInstruction {
+    function fetchDecode():Nullable<LinkedInstruction> {
         final firstWord = state.memory[state.pr++];
         final fetchSecondWord = () -> state.memory[state.pr++];
-        return firstWord.toInstruction(fetchSecondWord);
+        try {
+            trace('[${state.pr - 1}] -> ${firstWord}');
+            return firstWord.toInstruction(fetchSecondWord);
+        } catch (e:Exception) {
+            return null;
+        }
     }
 
     public function step():Bool {
         final mnemonic = fetchDecode();
+
+        trace(mnemonic);
+        final mnemonic = if (mnemonic.nonEmpty()) {
+            mnemonic.getUnsafe();
+        } else {
+            priorityIntRequire(1);
+            N({mnemonic: NOP});
+        }
 
         // TODO: FR 変更
         switch (mnemonic) {
@@ -158,9 +173,11 @@ class Comet2 {
                         throw new Exception("not implemeted...");
                     case INT:
                         final cause = calcAddr(i.addr, i.x);
-                        intQueueLock.wait();
-                        state.intQueue.push(cause);
-                        intQueueLock.release();
+                        if (cause.toUnsigned() > 15) {
+                            priorityIntRequire(1);
+                        } else {
+                            intRequire(cause);
+                        }
                 }
             case P(i):
                 switch (i.mnemonic) {
@@ -173,6 +190,16 @@ class Comet2 {
                     case RET:
                         final addr = pop();
                         state.pr = addr;
+                    case IRET:
+                        state.pr = pop();
+                        state.sp = pop();
+                        state.fr = pop().toFR();
+                        for (i in [7, 6, 5, 4, 3, 2, 1, 0])
+                            state.gr[i] = pop();
+                    case EI:
+                        state.fr.ie = true;
+                    case DI:
+                        state.fr.ie = false;
                 }
         }
 
@@ -180,6 +207,7 @@ class Comet2 {
             intQueueLock.wait();
             if (state.intQueue.length == 0) {
                 intQueueLock.release();
+
                 break;
             }
 
@@ -205,17 +233,18 @@ class Comet2 {
     }
 
     function int(cause:Int):Bool {
-        // 割り込み禁止なら無視する.
         if (cause > 15) {
             throw new Exception("int cause over range");
-            state.intQueue.push(1);
-        } else if (cause == 8) {
+        } else if (cause == 3) {
             if (bios())
                 return true;
         } else {
-            final routine = INT_VEC_ADDR + cause;
-            // TODO: 割り込み禁止
-            // TODO: RPUSH
+            final routine = state.memory[INT_VEC_ADDR + cause];
+            for (i in 0...8)
+                push(state.gr[i]);
+            push(state.fr.toWord());
+            state.fr.ie = false;
+            push(state.sp);
             push(state.pr);
             state.pr = new Word(routine);
         }
@@ -225,6 +254,47 @@ class Comet2 {
     function bios() {
         state.intQueue.push(1);
         return false;
+    }
+
+    /**
+        割り込み要求 (マスク可能)
+    **/
+    function intRequireWithMask(cause:Int) {
+        if (cause > 15) {
+            throw new Exception('invalid int cause (${cause})');
+        } else if (state.fr.ie) {
+            if (state.intVecMask & (1 << cause) == 0) {
+                intQueueLock.wait();
+                state.intQueue.push(cause);
+                intQueueLock.release();
+            }
+        }
+    }
+
+    /**
+        割り込み要求 (マスク不可)
+    **/
+    function intRequire(cause:Int) {
+        if (cause > 15) {
+            throw new Exception('invalid int cause (${cause})');
+        } else {
+            intQueueLock.wait();
+            state.intQueue.push(cause);
+            intQueueLock.release();
+        }
+    }
+
+    /**
+        割り込み要求 (マスク不可, 優先)
+    **/
+    function priorityIntRequire(cause:Int) {
+        if (cause > 15) {
+            throw new Exception('invalid int cause (${cause})');
+        } else {
+            intQueueLock.wait();
+            state.intQueue.insert(0, cause);
+            intQueueLock.release();
+        }
     }
 
     function calcAddr(addr:Word, x:Nullable<I1to7>) {
