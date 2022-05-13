@@ -207,7 +207,6 @@ class Comet2 {
             intQueueLock.wait();
             if (state.intQueue.length == 0) {
                 intQueueLock.release();
-
                 break;
             }
 
@@ -216,6 +215,7 @@ class Comet2 {
             intQueueLock.release();
 
             if (int(cause)) {
+                onExit();
                 state.isExited = true;
                 return true;
             }
@@ -303,5 +303,8 @@ class Comet2 {
 
     public function getState():FrozenComet2State {
         return cast state;
+    }
+
+    function onExit() {
     }
 }

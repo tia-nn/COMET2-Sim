@@ -1,0 +1,67 @@
+PRG START
+
+ 	DI
+
+	lad gr0, TimerHandler
+	lad gr1, 4
+    st gr0, #2000, gr1
+
+ 	EI
+
+l jump l
+
+
+TimerHandler nop
+    lad gr0, 20
+    ld gr1, row
+    call mul
+    lad gr1, str
+    call packPrint
+    ld gr0, row
+    addl gr0, =1
+    st gr0, row
+    iret
+
+row dc 0
+str dc 'timer handler.', 0
+
+
+; GR1: str, GR2: offset
+packPrint nop
+	lad gr3, 0  ; is low
+
+loop	ld gr0, 0, gr1
+		cpl gr0, =0
+		jze packPrint_exit
+
+		cpl gr3, =0
+		jnz low
+high		sll gr0, 8
+			st gr0, #2010, gr2
+			lad gr3, 1
+			addl gr1, =1
+			jump end_if
+
+low 		ld gr4, #2010, gr2
+			xor gr0, gr4
+			st gr0, #2010, gr2
+			lad gr3, 0
+			addl gr1, =1
+			addl gr2, =1
+			jump end_if
+end_if	jump loop
+packPrint_exit ret
+
+; GR0 * GR1 = GR2
+mul nop
+    lad gr2, 0
+mul_loop nop
+    cpl gr1, =0
+    jze mul_end
+    addl gr2, gr0
+    subl gr1, =1
+    jump mul_loop
+mul_end ret
+
+
+    END

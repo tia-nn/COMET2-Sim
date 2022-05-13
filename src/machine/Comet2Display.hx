@@ -5,8 +5,9 @@ import haxe.io.Bytes;
 import sys.io.FileOutput;
 import types.Word;
 
-class Comet2Display extends Comet2Bios {
+class Comet2Display extends Comet2Timer {
     final displayFile:FileOutput;
+    var bufferCache:String = '';
 
     static final FRAME_BUF = 0x2010;
 
@@ -18,10 +19,13 @@ class Comet2Display extends Comet2Bios {
     override function step():Bool {
         final result = super.step();
 
-        displayFile.seek(0, SeekBegin);
+        final frameBuf = state.memory.slice(FRAME_BUF, FRAME_BUF + 400);
+        var buffer = '';
+
         for (i in 0...20) {
             for (j in 0...20) {
-                final word = state.memory[FRAME_BUF + (i * 20 + j)];
+                final word = frameBuf[i * 20 + j];
+
                 final char1 = word.toUnsigned() >> 8;
                 final char2 = word.toUnsigned() & 0x00ff;
 
@@ -33,9 +37,16 @@ class Comet2Display extends Comet2Bios {
                 final char1 = String.fromCharCode(char1);
                 final char2 = String.fromCharCode(char2);
 
-                displayFile.write(Bytes.ofString(char1 + char2));
+                buffer = buffer + char1 + char2;
             }
-            displayFile.write(Bytes.ofString("\n"));
+            buffer = buffer + '\n';
+        }
+
+        if (buffer != bufferCache) {
+            displayFile.seek(0, SeekBegin);
+            displayFile.write(Bytes.ofString(buffer));
+            displayFile.flush();
+            bufferCache = buffer;
         }
 
         return result;
