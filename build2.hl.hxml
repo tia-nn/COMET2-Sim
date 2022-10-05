@@ -1,0 +1,14 @@
+./dependencies.hxml
+
+--class-path src2
+--main Main
+--hl bin/casl2.hl
+
+--define extension_instructions
+
+# --next
+# ./dependencies.hxml
+
+# --class-path src
+# --main Comet2
+# --hl bin/comet2.hl
