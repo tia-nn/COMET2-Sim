@@ -1921,56 +1921,56 @@
     <td rowspan="16">d</td>
     <td>0</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.SP</td>
+    <td>* load SP register</td>
   </tr>
   <tr>
     <td>1</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.PTR</td>
+    <td>* load PTR register</td>
   </tr>
   <tr>
     <td>2</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.IE</td>
+    <td>* load IE register</td>
   </tr>
   <tr>
     <td>3</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.IW</td>
+    <td>* load IW register</td>
   </tr>
   <tr>
     <td>4</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.CAUSE</td>
+    <td>* load CAUSE register</td>
   </tr>
   <tr>
     <td>5</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.STATUS</td>
+    <td>load STATUS register</td>
   </tr>
   <tr>
     <td>6</td>
@@ -2066,29 +2066,29 @@
     <td rowspan="16">e</td>
     <td>0</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>ST.SP</td>
+    <td>* store SP register</td>
   </tr>
   <tr>
     <td>1</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>ST.PTR</td>
+    <td>* store PTR register</td>
   </tr>
   <tr>
     <td>2</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>ST.IE</td>
+    <td>* store IE register</td>
   </tr>
   <tr>
     <td>3</td>
@@ -2111,11 +2111,11 @@
   <tr>
     <td>5</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>ST.STATUS</td>
+    <td>* store STATUS register</td>
   </tr>
   <tr>
     <td>6</td>
@@ -2224,7 +2224,7 @@
     <td></td>
     <td>2</td>
     <td>INT adr, x</td>
-    <td>interrupt</td>
+    <td>* interrupt</td>
   </tr>
   <tr>
     <td>2</td>
@@ -2251,25 +2251,25 @@
     <td>-</td>
     <td>1</td>
     <td>IRET</td>
-    <td>return from interrupt handler</td>
+    <td>* return from interrupt handler</td>
   </tr>
   <tr>
     <td>5</td>
-    <td>-</td>
-    <td>-</td>
-    <td>-</td>
-    <td>1</td>
-    <td>EI</td>
-    <td>enable interrupt</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
   </tr>
   <tr>
     <td>6</td>
-    <td>-</td>
-    <td>-</td>
-    <td>-</td>
-    <td>1</td>
-    <td>DI</td>
-    <td>disable interrupt</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
   </tr>
   <tr>
     <td>7</td>
