@@ -1970,7 +1970,7 @@
     <td>-</td>
     <td>1</td>
     <td>LD.STATUS</td>
-    <td>load STATUS register</td>
+    <td>* load STATUS register</td>
   </tr>
   <tr>
     <td>6</td>
