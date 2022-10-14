@@ -287,6 +287,13 @@ class Comet2Core {
                         }
                         result4FR = Some(GR[i.r]);
                 }
+
+            case N(i):
+                switch (i.mnemonic) {
+                    case NOP:
+                    default:
+                        trace('Not Implemented. (${inst.toString()})');
+                }
             default:
                 trace('Not Implemented. (${inst.toString()})');
         }

@@ -4,6 +4,7 @@ import comet2.Comet2Core;
 import comet2.FrozenComet2Core;
 import comet2.Instruction;
 import extype.Nullable;
+import extype.ReadOnlyArray;
 import extype.Result;
 import react.ReactComponent;
 import react.ReactMacro.jsx;
@@ -12,22 +13,12 @@ import types.Word;
 using StringTools;
 using comet2.InstructionTools;
 
-class Comet2Display extends ReactComponentOf<{}, Comet2DisplayState> {
-    final machine:Comet2Core;
+class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplayState> {
+    var machine:Comet2Core;
 
     public function new(props) {
         super(props);
-        machine = new Comet2Core([
-            new Word(0x1200),
-            new Word(0x0010),
-            new Word(0x1210),
-            new Word(0x0011),
-            new Word(0x1241),
-            new Word(0x0000),
-            new Word(0x2440),
-            new Word(0x1251),
-            new Word(0x0010),
-        ]);
+        machine = new Comet2Core([]);
         state = {
             machine: machine.frozen(),
             memoryRenderAddr: "000",
@@ -187,6 +178,17 @@ class Comet2Display extends ReactComponentOf<{}, Comet2DisplayState> {
     function onRenderAddrChange(ev) {
         setState({memoryRenderAddr: ev.target.value});
     }
+
+    override function componentDidUpdate(prevProps:Comet2DisplayProps, prevState:Comet2DisplayState) {
+        if (prevProps.program != props.program) {
+            machine = new Comet2Core(props.program.text, props.program.entry);
+            setState({machine: machine.frozen()});
+        }
+    }
+}
+
+typedef Comet2DisplayProps = {
+    final program:{text:ReadOnlyArray<Word>, entry:Int};
 }
 
 typedef Comet2DisplayState = {
