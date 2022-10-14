@@ -6,6 +6,8 @@ import comet2.Instruction;
 import extype.Nullable;
 import extype.ReadOnlyArray;
 import extype.Result;
+import js.html.CanvasElement;
+import js.html.ImageData;
 import react.ReactComponent;
 import react.ReactMacro.jsx;
 import types.Word;
@@ -15,15 +17,21 @@ using comet2.InstructionTools;
 
 class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplayState> {
     var machine:Comet2Core;
+    var canvasEl:CanvasElement;
 
     public function new(props) {
         super(props);
         machine = new Comet2Core([]);
+        final frozen = machine.frozen();
         state = {
-            machine: machine.frozen(),
+            machine: frozen,
             memoryRenderAddr: "000",
             lastPR: 0,
             lastInst: Success(N({mnemonic: NOP})),
+            canvasHeight: 150,
+            canvasWidth: 300,
+            framebuffer: 0,
+            imageData: createImageData(frozen.memory, 0, 300, 150),
         };
     }
 
@@ -114,7 +122,16 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
                 <span>IE: <input value=${state.machine.STATUS.IE} readOnly /></span>
             </div>
 
+
             <hr/>
+
+            <h4>Display</h4>
+
+            <canvas ref=${r -> {canvasEl = r;}} height=${state.canvasHeight} width=${state.canvasWidth}></canvas>
+
+            <hr/>
+
+            <h4>Memory</h4>
 
             0x<input onChange=${onRenderAddrChange} value=${state.memoryRenderAddr} />0
 
@@ -168,11 +185,28 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
         final lastPR = lastMachine.PR;
         final lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
         machine.step();
+        final frozen = machine.frozen();
+        final imageData = createImageData(frozen.memory, state.framebuffer, state.canvasWidth, state.canvasHeight);
         setState({
-            machine: machine.frozen(),
+            machine: frozen,
             lastPR: lastPR,
             lastInst: lastInst,
+            imageData: imageData,
         });
+    }
+
+    static function createImageData(mem:ReadOnlyArray<Word>, offset, sw:Int, sh:Int) {
+        final imageData = new ImageData(sw, sh);
+        for (i in 0...Std.int(sw * sh)) {
+            final adr = offset + Std.int(i / 8);
+            final byte = mem[adr];
+            final bit = byte.toBitArray()[i % 8];
+            imageData.data[i * 4] = bit * 255;
+            imageData.data[i * 4 + 1] = bit * 255;
+            imageData.data[i * 4 + 2] = bit * 255;
+            imageData.data[i * 4 + 3] = 255;
+        }
+        return imageData;
     }
 
     function onRenderAddrChange(ev) {
@@ -182,8 +216,18 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
     override function componentDidUpdate(prevProps:Comet2DisplayProps, prevState:Comet2DisplayState) {
         if (prevProps.program != props.program) {
             machine = new Comet2Core(props.program.text, props.program.entry);
-            setState({machine: machine.frozen()});
+            final frozen = machine.frozen();
+            final imageData = createImageData(frozen.memory, state.framebuffer, state.canvasWidth, state.canvasHeight);
+            setState({machine: frozen, imageData: imageData});
+        } else {
+            final ctx = canvasEl.getContext2d();
+            ctx.putImageData(state.imageData, 0, 0);
         }
+    }
+
+    override function componentDidMount() {
+        final ctx = canvasEl.getContext2d();
+        ctx.putImageData(state.imageData, 0, 0);
     }
 }
 
@@ -196,4 +240,8 @@ typedef Comet2DisplayState = {
     final memoryRenderAddr:String;
     final lastPR:Int;
     final lastInst:Result<Instruction, Int>;
+    final canvasHeight:Int;
+    final canvasWidth:Int;
+    final framebuffer:Int;
+    final imageData:ImageData;
 }
