@@ -254,12 +254,21 @@ enum JMnemonic {
 
 enum PMnemonic {
     POP;
+
+    LD_SP;
+    LD_PTR;
+    LD_IE;
+    LD_IW;
+    LD_CAUSE;
+    LD_STATUS;
+    ST_SP;
+    ST_PTR;
+    ST_IE;
+    ST_STATUS;
 }
 
 enum NMnemonic {
     RET;
     NOP;
     IRET;
-    EI;
-    DI;
 }

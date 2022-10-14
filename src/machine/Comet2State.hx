@@ -12,6 +12,12 @@ typedef Comet2State = {
     var intQueue:Array<Int>;
     var intVecMask:Word;
     var isExited:Bool;
+
+    var ptr:Word;
+    var ie:Word;
+    var iw:Word;
+    var cause:Word;
+    var status:Word;
 }
 
 @:using(machine.Comet2State.Comet2FRTools)
@@ -24,14 +30,11 @@ typedef Comet2FR = {
 
     /** zero **/
     var zf:Bool;
-
-    /** interrupt enabled **/
-    var ie:Bool;
 }
 
 class Comet2FRTools {
     public static function toWord(fr:Comet2FR) {
-        return new Word(boolToInt(fr.of) << 15 | boolToInt(fr.sf) << 14 | boolToInt(fr.zf) << 13 | boolToInt(fr.ie) << 12);
+        return new Word(boolToInt(fr.of) << 15 | boolToInt(fr.sf) << 14 | boolToInt(fr.zf) << 13);
     }
 
     static function boolToInt(a:Bool) {
@@ -48,6 +51,12 @@ typedef FrozenComet2State = {
     final intQueue:Array<Int>;
     final intVecMask:Word;
     final isExited:Bool;
+
+    final ptr:Word;
+    final ie:Word;
+    final iw:Word;
+    final cause:Word;
+    final status:Word;
 }
 
 typedef FrozenComet2FR = {

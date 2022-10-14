@@ -1,38 +1,37 @@
-package machine;
+package comet2;
 
-import extype.Exception;
-import types.Instruction;
+import extype.Result;
 import types.Word;
 
-class WordTools {
-    public static function toInstruction(firstWord:Word, fetchSecondWord:() -> Word):LinkedInstruction {
+class InstructionTools {
+    public static function toInstruction(firstWord:Word, secondWord:Word):Result<Instruction, Word> {
         final r_r1 = new I0to7((firstWord & 0x0070) >> 4);
         final r2 = new I0to7(firstWord & 0x0007);
         final x = r2.toNullI1to7();
-        final addr = fetchSecondWord;
+        final addr = secondWord;
 
-        return switch (firstWord >> 8) {
+        return Success(switch (firstWord >> 8) {
             case 0x00:
                 N({mnemonic: NOP});
             case 0x10:
                 I({
                     mnemonic: LD,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x11:
                 I({
                     mnemonic: ST,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x12:
                 I({
                     mnemonic: LAD,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x14:
@@ -41,28 +40,28 @@ class WordTools {
                 I({
                     mnemonic: ADDA,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x21:
                 I({
                     mnemonic: SUBA,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x22:
                 I({
                     mnemonic: ADDL,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x23:
                 I({
                     mnemonic: SUBL,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x24:
@@ -77,21 +76,21 @@ class WordTools {
                 I({
                     mnemonic: AND,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x31:
                 I({
                     mnemonic: OR,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x32:
                 I({
                     mnemonic: XOR,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x34:
@@ -104,14 +103,14 @@ class WordTools {
                 I({
                     mnemonic: CPA,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x41:
                 I({
                     mnemonic: CPL,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x44:
@@ -122,48 +121,48 @@ class WordTools {
                 I({
                     mnemonic: SLA,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x51:
                 I({
                     mnemonic: SRA,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x52:
                 I({
                     mnemonic: SLL,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x53:
                 I({
                     mnemonic: SRL,
                     r: r_r1,
-                    addr: addr(),
+                    addr: addr,
                     x: x
                 });
             case 0x61:
-                J({mnemonic: JMI, addr: addr(), x: x,});
+                J({mnemonic: JMI, addr: addr, x: x,});
             case 0x62:
-                J({mnemonic: JNZ, addr: addr(), x: x,});
+                J({mnemonic: JNZ, addr: addr, x: x,});
             case 0x63:
-                J({mnemonic: JZE, addr: addr(), x: x,});
+                J({mnemonic: JZE, addr: addr, x: x,});
             case 0x64:
-                J({mnemonic: JUMP, addr: addr(), x: x,});
+                J({mnemonic: JUMP, addr: addr, x: x,});
             case 0x65:
-                J({mnemonic: JPL, addr: addr(), x: x,});
+                J({mnemonic: JPL, addr: addr, x: x,});
             case 0x66:
-                J({mnemonic: JOV, addr: addr(), x: x,});
+                J({mnemonic: JOV, addr: addr, x: x,});
             case 0x70:
-                J({mnemonic: PUSH, addr: addr(), x: x,});
+                J({mnemonic: PUSH, addr: addr, x: x,});
             case 0x71:
                 P({mnemonic: POP, r: r_r1});
             case 0x80:
-                J({mnemonic: CALL, addr: addr(), x: x,});
+                J({mnemonic: CALL, addr: addr, x: x,});
             case 0x81:
                 N({mnemonic: RET});
             case 0xd0:
@@ -187,14 +186,80 @@ class WordTools {
             case 0xe5:
                 P({mnemonic: ST_STATUS, r: r_r1});
             case 0xf0:
-                J({mnemonic: SVC, addr: addr(), x: x,});
+                J({mnemonic: SVC, addr: addr, x: x,});
             case 0xf1:
-                J({mnemonic: INT, addr: addr(), x: x,});
+                J({mnemonic: INT, addr: addr, x: x,});
             case 0xf4:
                 N({mnemonic: IRET});
 
             case _:
-                throw new Exception("invalid instruction.");
+                return Failure(firstWord);
+        });
+    }
+
+    public static function isPrivilegeInstruction(inst:Instruction) {
+        return switch (inst) {
+            case P(i):
+                switch (i.mnemonic) {
+                    case LD_SP, LD_PTR, LD_IW, LD_CAUSE, LD_STATUS, ST_SP, ST_PTR, ST_IE, ST_STATUS:
+                        true;
+                    default:
+                        false;
+                }
+            case N(i):
+                switch (i.mnemonic) {
+                    case IRET:
+                        true;
+                    default:
+                        false;
+                }
+            default:
+                false;
+        }
+    }
+
+    public static function getInstructionSize(inst:Instruction):Int {
+        return switch (inst) {
+            case R(_), P(_), N(_):
+                1;
+            case I(_), J(_):
+                2;
+        }
+    }
+
+    public static function toString(inst:Instruction) {
+        return switch (inst) {
+            case R(i):
+                final mnemonic = i.mnemonic.getName();
+                final r1 = 'GR${i.r1}';
+                final r2 = 'GR${i.r2}';
+                '${mnemonic}\t${r1}, ${r2}';
+            case I(i):
+                final mnemonic = i.mnemonic.getName();
+                final r = 'GR${i.r}';
+                final adr = i.addr.toString();
+                switch (i.x.toMaybe()) {
+                    case Some(x):
+                        '${mnemonic}\t${r}, ${adr}, ${x}';
+                    case None:
+                        '${mnemonic}\t${r}, ${adr}';
+                }
+            case J(i):
+                final mnemonic = i.mnemonic.getName();
+                final adr = i.addr.toString();
+                switch (i.x.toMaybe()) {
+                    case Some(x):
+                        '${mnemonic}\t${adr}, ${x}';
+                    case None:
+                        '${mnemonic}\t${adr}';
+                }
+            case P(i):
+                final mnemonic = i.mnemonic.getName();
+                final r = 'GR${i.r}';
+                '${mnemonic}\t${r}';
+            case N(i):
+                final mnemonic = i.mnemonic.getName();
+                '${mnemonic}';
         }
     }
 }

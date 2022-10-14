@@ -50,11 +50,19 @@ enum MnemonicToken {
     POP;
     CALL;
     RET;
+    LD_SP;
+    LD_PTR;
+    LD_IE;
+    LD_IW;
+    LD_CAUSE;
+    LD_STATUS;
+    ST_SP;
+    ST_PTR;
+    ST_IE;
+    ST_STATUS;
     SVC;
     INT;
     IRET;
-    EI;
-    DI;
     NOP;
 
     START;

@@ -60,8 +60,8 @@ abstract Word(Int) to Int {
         this = v & 0xffff;
     }
 
-    public function toString(?bytesep:String = "") {
-        return ((this & 0xff00) >> 8).hex(2) + bytesep + (this & 0x00ff).hex(2);
+    public function toString(prefix:String = "0x", bytesep:String = "") {
+        return prefix + ((this & 0xff00) >> 8).hex(2) + bytesep + (this & 0x00ff).hex(2);
     }
 
     public function toSigned():Int {

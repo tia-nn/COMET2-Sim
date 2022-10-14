@@ -115,6 +115,26 @@ class Casl2 {
                 switch (i.mnemonic) {
                     case POP:
                         {text: [new Word(0x3400 | i.r << 4)]}
+                    case LD_SP:
+                        {text: [new Word(0xd000 | i.r << 4)]}
+                    case LD_PTR:
+                        {text: [new Word(0xd100 | i.r << 4)]}
+                    case LD_IE:
+                        {text: [new Word(0xd200 | i.r << 4)]}
+                    case LD_IW:
+                        {text: [new Word(0xd300 | i.r << 4)]}
+                    case LD_CAUSE:
+                        {text: [new Word(0xd400 | i.r << 4)]}
+                    case LD_STATUS:
+                        {text: [new Word(0xd500 | i.r << 4)]}
+                    case ST_SP:
+                        {text: [new Word(0xe000 | i.r << 4)]}
+                    case ST_PTR:
+                        {text: [new Word(0xe100 | i.r << 4)]}
+                    case ST_IE:
+                        {text: [new Word(0xe200 | i.r << 4)]}
+                    case ST_STATUS:
+                        {text: [new Word(0xe500 | i.r << 4)]}
                 }
             case N(i):
                 switch (i.mnemonic) {
@@ -124,10 +144,6 @@ class Casl2 {
                         {text: [new Word(0x8100)]};
                     case IRET:
                         {text: [new Word(0xf400)]};
-                    case EI:
-                        {text: [new Word(0xf500)]};
-                    case DI:
-                        {text: [new Word(0xf600)]};
                 }
             case Data(d):
                 {text: [d]};
