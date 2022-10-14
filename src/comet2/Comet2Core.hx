@@ -287,15 +287,66 @@ class Comet2Core {
                         }
                         result4FR = Some(GR[i.r]);
                 }
-
+            case J(i):
+                final eAddr = calcAddr(i.addr, i.x);
+                switch (i.mnemonic) {
+                    // TODO: 相対ジャンプにする?
+                    case JUMP:
+                        nextPR = eAddr;
+                    case JPL:
+                        if (!FR.SF && !FR.ZF) nextPR = eAddr;
+                    case JMI:
+                        if (FR.SF) nextPR = eAddr;
+                    case JNZ:
+                        if (!FR.ZF) nextPR = eAddr;
+                    case JZE:
+                        if (FR.ZF) nextPR = eAddr;
+                    case JOV:
+                        if (FR.OF) nextPR = eAddr;
+                    case PUSH:
+                        push(eAddr);
+                    case CALL:
+                        push(PR);
+                        nextPR = eAddr;
+                    case SVC:
+                        trace('Not Implemented. (${inst.toString()})');
+                    case INT:
+                        trace('Not Implemented. (${inst.toString()})');
+                }
+            case P(i):
+                switch (i.mnemonic) {
+                    case POP:
+                        GR[i.r] = pop();
+                    case LD_SP:
+                        // TODO: 特権チェック
+                        GR[i.r] = SP;
+                    case LD_PTR:
+                        GR[i.r] = PTR;
+                    case LD_IE:
+                        GR[i.r] = IE.toWord();
+                    case LD_IW:
+                        GR[i.r] = IW.toWord();
+                    case LD_CAUSE:
+                        GR[i.r] = CAUSE;
+                    case LD_STATUS:
+                        GR[i.r] = STATUS.toWord();
+                    case ST_SP:
+                        SP = GR[i.r];
+                    case ST_PTR:
+                        PTR = GR[i.r];
+                    case ST_IE:
+                        IE = IERegister.fromWord(GR[i.r]);
+                    case ST_STATUS:
+                        STATUS = StatusRegister.fromWord(GR[i.r]);
+                }
             case N(i):
                 switch (i.mnemonic) {
                     case NOP:
-                    default:
+                    case RET:
+                        nextPR = pop();
+                    case IRET:
                         trace('Not Implemented. (${inst.toString()})');
                 }
-            default:
-                trace('Not Implemented. (${inst.toString()})');
         }
 
         switch (result4FR) {
@@ -317,6 +368,17 @@ class Comet2Core {
             case Exec:
                 memory[addr];
         }
+    }
+
+    function push(v:Word) {
+        SP = SP - new Word(1);
+        memAccess(SP, Write(v));
+    }
+
+    function pop() {
+        final r = memAccess(SP);
+        SP = SP + new Word(1);
+        return r;
     }
 
     function calcAddr(addr:Word, x:Nullable<I1to7>):Word {
