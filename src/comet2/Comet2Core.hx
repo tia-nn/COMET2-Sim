@@ -5,6 +5,8 @@ import comet2.csr.IERegister;
 import comet2.csr.IWRegister;
 import comet2.csr.StatusRegister;
 import extype.Exception;
+import extype.Maybe;
+import extype.Nullable;
 import extype.ReadOnlyArray;
 import extype.Result;
 import types.Word;
@@ -99,12 +101,224 @@ class Comet2Core {
     }
 
     function fetchAndDecode():Result<Instruction, Word> {
-        final firstWord = memory[PR];
-        final secondWord = memory[PR + 1];
+        final firstWord = memAccess(PR, Exec);
+        final secondWord = memAccess(PR + new Word(1), Exec);
         return firstWord.toInstruction(secondWord);
     }
 
     function excecution(inst:Instruction) {
         trace(inst.toString());
+
+        var result4FR:Maybe<Word> = None; // Some() なら FR.SR,FR.ZF セット
+
+        switch (inst) {
+            case R(i):
+                final before = GR[i.r1];
+                switch (i.mnemonic) {
+                    case LD:
+                        GR[i.r1] = GR[i.r2];
+                        FR.OF = false;
+                        result4FR = Some(GR[i.r1]);
+                    case ADDA:
+                        GR[i.r1] = GR[i.r1] + GR[i.r2];
+                        FR.OF = if (GR[i.r2].toSigned() >= 0) {
+                            FR.OF = GR[i.r1] < before;
+                        } else {
+                            FR.OF = GR[i.r1] > before;
+                        }
+                        result4FR = Some(GR[i.r1]);
+                    case ADDL:
+                        GR[i.r1] = GR[i.r1] + GR[i.r2];
+                        FR.OF = GR[i.r1] < before;
+                        result4FR = Some(GR[i.r1]);
+                    case SUBA:
+                        GR[i.r1] = GR[i.r1] + GR[i.r2];
+                        FR.OF = if (GR[i.r2].toSigned() >= 0) {
+                            FR.OF = GR[i.r1] > before;
+                        } else {
+                            FR.OF = GR[i.r1] < before;
+                        }
+                        result4FR = Some(GR[i.r1]);
+                    case SUBL:
+                        GR[i.r1] = GR[i.r1] - GR[i.r2];
+                        FR.OF = GR[i.r1] > GR[i.r2];
+                        result4FR = Some(GR[i.r1]);
+                    case AND:
+                        GR[i.r1] = GR[i.r1] & GR[i.r2];
+                        FR.OF = false;
+                        result4FR = Some(GR[i.r1]);
+                    case OR:
+                        GR[i.r1] = GR[i.r1] | GR[i.r2];
+                        FR.OF = false;
+                        result4FR = Some(GR[i.r1]);
+                    case XOR:
+                        GR[i.r1] = GR[i.r1] ^ GR[i.r2];
+                        FR.OF = false;
+                        result4FR = Some(GR[i.r1]);
+                    case CPA:
+                        FR.OF = false;
+                        final r1 = GR[i.r1].toSigned();
+                        final r2 = GR[i.r2].toSigned();
+                        result4FR = if (r1 > r2) {
+                            Some(new Word(0x0001)); // SF = 0; ZF = 0;
+                        } else if (r1 == r2) {
+                            Some(new Word(0x0000)); // SF = 0; ZF = 1;
+                        } else /* r1 < r2 */ {
+                            Some(new Word(0x8000)); // SF = 1; ZF = 0;
+                        }
+                    case CPL:
+                        FR.OF = false;
+                        result4FR = if (GR[i.r1] > GR[i.r2]) {
+                            Some(new Word(0x0001)); // SF = 0; ZF = 0;
+                        } else if (GR[i.r1] == GR[i.r2]) {
+                            Some(new Word(0x0000)); // SF = 0; ZF = 1;
+                        } else /* GR[i.r1] < GR[i.r2] */ {
+                            Some(new Word(0x8000)); // SF = 1; ZF = 0;
+                        }
+                }
+            case I(i):
+                final before = GR[i.r];
+                final eAddr = calcAddr(i.addr, i.x);
+                switch (i.mnemonic) {
+                    case LD:
+                        GR[i.r] = memAccess(eAddr);
+                        FR.OF = false;
+                        result4FR = Some(GR[i.r]);
+                    case ST:
+                        memAccess(eAddr, Write(GR[i.r]));
+                    case LAD:
+                        GR[i.r] = eAddr;
+                    case ADDA:
+                        final memVal = memAccess(eAddr);
+                        GR[i.r] = GR[i.r] + memVal;
+                        FR.OF = if (memVal.toSigned() >= 0) {
+                            FR.OF = GR[i.r] < before;
+                        } else {
+                            FR.OF = GR[i.r] > before;
+                        }
+                        result4FR = Some(GR[i.r]);
+                    case ADDL:
+                        GR[i.r] = GR[i.r] + memAccess(eAddr);
+                        FR.OF = GR[i.r] < before;
+                        result4FR = Some(GR[i.r]);
+                    case SUBA:
+                        final memVal = memAccess(eAddr);
+                        GR[i.r] = GR[i.r] - memVal;
+                        FR.OF = if (memVal.toSigned() >= 0) {
+                            FR.OF = GR[i.r] > before;
+                        } else {
+                            FR.OF = GR[i.r] < before;
+                        }
+                        result4FR = Some(GR[i.r]);
+                    case SUBL:
+                        GR[i.r] = GR[i.r] - memAccess(eAddr);
+                        FR.OF = GR[i.r] > before;
+                        result4FR = Some(GR[i.r]);
+                    case AND:
+                        GR[i.r] = GR[i.r] & memAccess(eAddr);
+                        FR.OF = false;
+                        result4FR = Some(GR[i.r]);
+                    case OR:
+                        GR[i.r] = GR[i.r] | memAccess(eAddr);
+                        FR.OF = false;
+                        result4FR = Some(GR[i.r]);
+                    case XOR:
+                        GR[i.r] = GR[i.r] ^ memAccess(eAddr);
+                        FR.OF = false;
+                        result4FR = Some(GR[i.r]);
+                    case CPA:
+                        FR.OF = false;
+                        final r = GR[i.r].toSigned();
+                        final adr = eAddr.toSigned();
+                        result4FR = if (r > adr) {
+                            Some(new Word(0x0001)); // SF = 0; ZF = 0;
+                        } else if (r == adr) {
+                            Some(new Word(0x0000)); // SF = 0; ZF = 1;
+                        } else /* r < adr */ {
+                            Some(new Word(0x8000)); // SF = 1; ZF = 0;
+                        }
+                    case CPL:
+                        FR.OF = false;
+                        result4FR = if (GR[i.r] > eAddr) {
+                            Some(new Word(0x0001)); // SF = 0; ZF = 0;
+                        } else if (GR[i.r] == eAddr) {
+                            Some(new Word(0x0000)); // SF = 0; ZF = 1;
+                        } else /* GR[i.r] < eAddr */ {
+                            Some(new Word(0x8000)); // SF = 1; ZF = 0;
+                        }
+                    case SLA:
+                        if (eAddr.toUnsigned() > 15) {
+                            FR.OF = false;
+                            GR[i.r] = GR[i.r] & 0x8000.toWord();
+                        } else if (eAddr == 0) {
+                        } else {
+                            FR.OF = GR[i.r].toBitArray()[eAddr].toBool();
+                            GR[i.r] = GR[i.r].sla(eAddr);
+                        }
+                        result4FR = Some(GR[i.r]);
+                    case SRA:
+                        if (eAddr.toUnsigned() > 15) {
+                            FR.OF = (GR[i.r] & 0x8000).toBool();
+                            GR[i.r] = GR[i.r] >> eAddr;
+                        } else if (eAddr == 0) {
+                        } else {
+                            FR.OF = GR[i.r].toBitArray()[16 - eAddr].toBool();
+                            GR[i.r] = GR[i.r] >> eAddr;
+                        }
+                        result4FR = Some(GR[i.r]);
+                    case SLL:
+                        if (eAddr.toUnsigned() > 16) {
+                            FR.OF = false;
+                            GR[i.r] = GR[i.r] << eAddr;
+                        } else if (eAddr == 0) {
+                        } else {
+                            FR.OF = GR[i.r].toBitArray()[eAddr - 1].toBool();
+                            GR[i.r] = GR[i.r] << eAddr;
+                        }
+                        result4FR = Some(GR[i.r]);
+                    case SRL:
+                        if (eAddr.toUnsigned() > 16) {
+                            FR.OF = false;
+                            GR[i.r] = GR[i.r] >>> eAddr;
+                        } else if (eAddr == 0) {
+                        } else {
+                            FR.OF = GR[i.r].toBitArray()[16 - eAddr - 1].toBool();
+                            GR[i.r] = GR[i.r] >>> eAddr;
+                        }
+                        result4FR = Some(GR[i.r]);
+                }
+            default:
+                trace('Not Implemented. (${inst.toString()})');
+        }
+
+        switch (result4FR) {
+            case Some(result):
+                FR.SF = result & 0x8000 != 0;
+                FR.ZF = result == 0;
+            case None:
+        }
     }
+
+    function memAccess(addr:Word, mode:MemoryAccessMode = Read):Word {
+        // TODO: 仮想メモリアドレス解決
+        // TODO: 権限チェック
+        return switch (mode) {
+            case Read:
+                memory[addr];
+            case Write(w):
+                memory[addr] = w;
+            case Exec:
+                memory[addr];
+        }
+    }
+
+    function calcAddr(addr:Word, x:Nullable<I1to7>):Word {
+        return addr + x.fold(() -> new Word(0), r -> GR[r]);
+    }
+}
+
+enum MemoryAccessMode {
+    Read;
+    Write(w:Word);
+    Exec;
 }

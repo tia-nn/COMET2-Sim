@@ -2,25 +2,55 @@ package client;
 
 import comet2.Comet2Core;
 import comet2.FrozenComet2Core;
+import comet2.Instruction;
 import extype.Nullable;
+import extype.Result;
 import react.ReactComponent;
 import react.ReactMacro.jsx;
+import types.Word;
 
 using StringTools;
+using comet2.InstructionTools;
 
 class Comet2Display extends ReactComponentOf<{}, Comet2DisplayState> {
     final machine:Comet2Core;
 
     public function new(props) {
         super(props);
-        machine = new Comet2Core([]);
+        machine = new Comet2Core([
+            new Word(0x1200),
+            new Word(0x0010),
+            new Word(0x1210),
+            new Word(0x0011),
+            new Word(0x1241),
+            new Word(0x0000),
+            new Word(0x2440),
+            new Word(0x1251),
+            new Word(0x0010),
+        ]);
         state = {
             machine: machine.frozen(),
             memoryRenderAddr: "000",
+            lastPR: 0,
+            lastInst: Success(N({mnemonic: NOP})),
         };
     }
 
     override function render():ReactFragment {
+        final lastInstStr = switch (state.lastInst) {
+            case Success(value):
+                value.toString();
+            case Failure(error):
+                'Invalid Instruction (0x${error.hex(4)})';
+        }
+        final maybeNextInst = state.machine.memory[state.machine.PR].toInstruction(state.machine.memory[state.machine.PR + 1]);
+        final nextInstStr = switch (maybeNextInst) {
+            case Success(value):
+                value.toString();
+            case Failure(error):
+                'Invalid Instruction (0x${error.hex(4)})';
+        }
+
         return jsx('<div>
 
             <button onClick=${onStepButtonClick}>step</button>
@@ -49,6 +79,9 @@ class Comet2Display extends ReactComponentOf<{}, Comet2DisplayState> {
                 <span>SF: <input value=${state.machine.FR.SF} readOnly /></span>
                 <span>OF: <input value=${state.machine.FR.OF} readOnly /></span>
             </div>
+
+            <p>last: ${lastInstStr}</p>
+            <p>next: ${nextInstStr}</p>
 
             <hr/>
             <h4>CSR</h4>
@@ -140,9 +173,14 @@ class Comet2Display extends ReactComponentOf<{}, Comet2DisplayState> {
     }
 
     function onStepButtonClick(ev) {
+        final lastMachine = machine.frozen();
+        final lastPR = lastMachine.PR;
+        final lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
         machine.step();
         setState({
-            machine: machine.frozen()
+            machine: machine.frozen(),
+            lastPR: lastPR,
+            lastInst: lastInst,
         });
     }
 
@@ -154,4 +192,6 @@ class Comet2Display extends ReactComponentOf<{}, Comet2DisplayState> {
 typedef Comet2DisplayState = {
     final machine:FrozenComet2Core;
     final memoryRenderAddr:String;
+    final lastPR:Int;
+    final lastInst:Result<Instruction, Int>;
 }

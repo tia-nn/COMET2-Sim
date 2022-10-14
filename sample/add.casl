@@ -1,0 +1,11 @@
+MAIN START
+
+    lad gr0, 16
+    lad gr1, 17
+
+    lad gr4, 0, gr1
+    adda gr4, gr0
+
+    lad gr5, 16, gr1
+
+    END
