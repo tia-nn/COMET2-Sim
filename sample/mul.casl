@@ -1,0 +1,32 @@
+MAIN START
+
+    lad gr1, 3
+    lad gr2, 2
+    call MUL
+    ret
+
+;; GR0 = GR1 * GR 2
+;; 呼び出し元保存レジスタも破壊しない (GR0 以外)
+MUL nop
+    push 0, gr2
+
+    lad gr0, 0
+
+MUL_loop nop
+
+    cpl gr2, ZERO
+    jze MUL_end
+
+    adda gr0, gr1
+    lad gr2, #ffff, gr2  ; gr2 = -1 + gr2
+
+    jump MUL_loop
+
+MUL_end nop
+    pop gr2
+    ret
+
+; data
+ZERO DC 0
+
+    END

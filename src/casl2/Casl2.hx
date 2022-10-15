@@ -114,7 +114,7 @@ class Casl2 {
             case P(i):
                 switch (i.mnemonic) {
                     case POP:
-                        {text: [new Word(0x3400 | i.r << 4)]}
+                        {text: [new Word(0x7100 | i.r << 4)]}
                     case LD_SP:
                         {text: [new Word(0xd000 | i.r << 4)]}
                     case LD_PTR:

@@ -1,0 +1,109 @@
+MAIN START
+
+    ; framebuffer: #0000
+    ; width: 320
+    ; height: 150
+
+    lad gr1, 320  ; framebuffer + (width * 8 * 2 / 16)
+    lad gr2, FONT_A
+    lad gr3, 0  ; オフセット
+
+
+    ld gr0, FONT_A, gr3
+    and gr0, =#ff00
+    st gr0, #0000, gr1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    sll gr0, 8
+    st gr0, #0000, gr1
+
+    adda gr3, =1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    and gr0, =#ff00
+    st gr0, #0000, gr1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    sll gr0, 8
+    st gr0, #0000, gr1
+
+    adda gr3, =1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    and gr0, =#ff00
+    st gr0, #0000, gr1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    sll gr0, 8
+    st gr0, #0000, gr1
+
+    adda gr3, =1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    and gr0, =#ff00
+    st gr0, #0000, gr1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    sll gr0, 8
+    st gr0, #0000, gr1
+
+    adda gr3, =1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    and gr0, =#ff00
+    st gr0, #0000, gr1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    sll gr0, 8
+    st gr0, #0000, gr1
+
+    adda gr3, =1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    and gr0, =#ff00
+    st gr0, #0000, gr1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    sll gr0, 8
+    st gr0, #0000, gr1
+
+    adda gr3, =1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    and gr0, =#ff00
+    st gr0, #0000, gr1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    sll gr0, 8
+    st gr0, #0000, gr1
+
+    adda gr3, =1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    and gr0, =#ff00
+    st gr0, #0000, gr1
+
+    adda gr1, =20
+    ld gr0, FONT_A, gr3
+    sll gr0, 8
+    st gr0, #0000, gr1
+
+; .data
+
+FONT_A DC #0018,#1818,#1824,#2424,#247e,#4242,#42e7,#0000
+
+    END

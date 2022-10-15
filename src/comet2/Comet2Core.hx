@@ -67,6 +67,10 @@ class Comet2Core {
         return new FrozenComet2Core(this);
     }
 
+    public function externalInterrupt() {
+        IW.external = true;
+    }
+
     function load(program:ReadOnlyArray<Word>, offset:Int = 0) {
         var to = offset;
         for (inst in program) {
@@ -78,6 +82,23 @@ class Comet2Core {
     }
 
     public function step() {
+        // 割り込み検知
+        if (STATUS.IE) {
+            if (IE.software && IW.software) {
+                enterInterruptTrap(1);
+                IW.software = false;
+                PR = nextPR;
+            } else if (IE.timer && IW.timer) {
+                enterInterruptTrap(3);
+                IW.timer = false;
+                PR = nextPR;
+            } else if (IE.external && IW.external) {
+                enterInterruptTrap(5);
+                IW.external = false;
+                PR = nextPR;
+            }
+        }
+
         final fetched = fetchAndDecode();
         switch (fetched) {
             case Success(inst):
@@ -98,6 +119,18 @@ class Comet2Core {
         }
 
         PR = nextPR;
+    }
+
+    function enterInterruptTrap(code:Int) {
+        EPR = PR;
+        CAUSE = new Word(0x8000 & code);
+        TVAL = new Word(0);
+        STATUS.PIE = STATUS.IE;
+        STATUS.IE = false;
+        STATUS.PPL = STATUS.PL;
+        STATUS.PL = false;
+        nextPR = TVEC; // TODO: Mode選択
+        inTrap = true;
     }
 
     function fetchAndDecode():Result<Instruction, Word> {
@@ -229,21 +262,22 @@ class Comet2Core {
                     case CPA:
                         FR.OF = false;
                         final r = GR[i.r].toSigned();
-                        final adr = eAddr.toSigned();
-                        result4FR = if (r > adr) {
+                        final rhs = memAccess(eAddr).toSigned();
+                        result4FR = if (r > rhs) {
                             Some(new Word(0x0001)); // SF = 0; ZF = 0;
-                        } else if (r == adr) {
+                        } else if (r == rhs) {
                             Some(new Word(0x0000)); // SF = 0; ZF = 1;
-                        } else /* r < adr */ {
+                        } else /* r < rhs */ {
                             Some(new Word(0x8000)); // SF = 1; ZF = 0;
                         }
                     case CPL:
                         FR.OF = false;
-                        result4FR = if (GR[i.r] > eAddr) {
+                        final rhs = memAccess(eAddr);
+                        result4FR = if (GR[i.r] > rhs) {
                             Some(new Word(0x0001)); // SF = 0; ZF = 0;
-                        } else if (GR[i.r] == eAddr) {
+                        } else if (GR[i.r] == rhs) {
                             Some(new Word(0x0000)); // SF = 0; ZF = 1;
-                        } else /* GR[i.r] < eAddr */ {
+                        } else /* GR[i.r] < rhs */ {
                             Some(new Word(0x8000)); // SF = 1; ZF = 0;
                         }
                     case SLA:
@@ -306,7 +340,7 @@ class Comet2Core {
                     case PUSH:
                         push(eAddr);
                     case CALL:
-                        push(PR);
+                        push(nextPR);
                         nextPR = eAddr;
                     case SVC:
                         trace('Not Implemented. (${inst.toString()})');

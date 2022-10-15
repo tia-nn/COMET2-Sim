@@ -240,7 +240,7 @@ class InstructionTools {
                 final adr = i.addr.toString();
                 switch (i.x.toMaybe()) {
                     case Some(x):
-                        '${mnemonic}\t${r}, ${adr}, ${x}';
+                        '${mnemonic}\t${r}, ${adr}, GR${x}';
                     case None:
                         '${mnemonic}\t${r}, ${adr}';
                 }
@@ -249,7 +249,7 @@ class InstructionTools {
                 final adr = i.addr.toString();
                 switch (i.x.toMaybe()) {
                     case Some(x):
-                        '${mnemonic}\t${adr}, ${x}';
+                        '${mnemonic}\t${adr}, GR${x}';
                     case None:
                         '${mnemonic}\t${adr}';
                 }

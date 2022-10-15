@@ -29,9 +29,10 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
             lastPR: 0,
             lastInst: Success(N({mnemonic: NOP})),
             canvasHeight: 150,
-            canvasWidth: 300,
-            framebuffer: 0,
-            imageData: createImageData(frozen.memory, 0, 300, 150),
+            canvasWidth: 320,
+            framebuffer: 0x1000,
+            imageData: createImageData(frozen.memory, 0, 320, 150),
+            displayAllMemory: false,
         };
     }
 
@@ -53,6 +54,8 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
         return jsx('<div>
 
             <button onClick=${onStepButtonClick}>step</button>
+            <button onClick=${on10StepButtonClick}>10step</button>
+            <button onClick=${onIntButtonClick}>INT</button>
 
             <div>
                 <span>GR0: <input value=${state.machine.GR[0]} readOnly /></span>
@@ -132,7 +135,7 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
             <hr/>
 
             <h4>Memory</h4>
-
+            <button onClick=${() -> setState({displayAllMemory: !state.displayAllMemory})}>all</button>
             0x<input onChange=${onRenderAddrChange} value=${state.memoryRenderAddr} />0
 
             ${renderMemoryTable()}
@@ -142,9 +145,10 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
     }
 
     function renderMemoryTable() {
-        final addr = Nullable.of(Std.parseInt('0x' + state.memoryRenderAddr)).getOrElse(0) & 0xfff;
+        final addr = if (state.displayAllMemory) 0 else Nullable.of(Std.parseInt('0x' + state.memoryRenderAddr)).getOrElse(0) & 0xfff;
         final trArr = [];
-        for (row in addr...addr + 16) {
+        final len = if (state.displayAllMemory) Std.int(0x10000 / 16) else 16;
+        for (row in addr...addr + len) {
             final i = row * 16;
             final tdArr = [jsx('<td key=${'h-${i.hex(4)}'}>0x${i.hex(4)}</td>')];
             for (col in 0...16) {
@@ -195,12 +199,39 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
         });
     }
 
+    function on10StepButtonClick(ev) {
+        var lastMachine = machine.frozen();
+        var lastPR = lastMachine.PR;
+        var lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
+        for (i in 0...10) {
+            lastMachine = machine.frozen();
+            lastPR = lastMachine.PR;
+            lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
+            machine.step();
+        }
+        final frozen = machine.frozen();
+        final imageData = createImageData(frozen.memory, state.framebuffer, state.canvasWidth, state.canvasHeight);
+        setState({
+            machine: frozen,
+            lastPR: lastPR,
+            lastInst: lastInst,
+            imageData: imageData,
+        });
+    }
+
+    function onIntButtonClick(ev) {
+        machine.externalInterrupt();
+        setState({
+            machine: machine.frozen(),
+        });
+    }
+
     static function createImageData(mem:ReadOnlyArray<Word>, offset, sw:Int, sh:Int) {
         final imageData = new ImageData(sw, sh);
         for (i in 0...Std.int(sw * sh)) {
-            final adr = offset + Std.int(i / 8);
+            final adr = offset + Std.int(i / 16);
             final byte = mem[adr];
-            final bit = byte.toBitArray()[i % 8];
+            final bit = byte.toBitArray()[i % 16];
             imageData.data[i * 4] = bit * 255;
             imageData.data[i * 4 + 1] = bit * 255;
             imageData.data[i * 4 + 2] = bit * 255;
@@ -244,4 +275,5 @@ typedef Comet2DisplayState = {
     final canvasWidth:Int;
     final framebuffer:Int;
     final imageData:ImageData;
+    final displayAllMemory:Bool;
 }

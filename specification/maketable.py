@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from numpy import byte, record, unicode_
-
 
 @dataclass
 class Record:
