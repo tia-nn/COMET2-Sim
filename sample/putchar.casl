@@ -1,24 +1,27 @@
 MAIN START
 
     lad gr1, #41
-    lad gr2, 0
+    lad gr2, 1
     lad gr3, 0
     call PUTCAHR
     lad gr1, #42
     lad gr2, 1
-    lad gr3, 0
+    lad gr3, 1
     call PUTCAHR
     lad gr1, #43
-    lad gr2, 2
-    lad gr3, 0
+    lad gr2, 1
+    lad gr3, 2
     call PUTCAHR
     lad gr1, #44
-    lad gr2, 3
-    lad gr3, 0
+    lad gr2, 1
+    lad gr3, 3
     call PUTCAHR
 
 MAIN_LOOP jump MAIN_LOOP
 
+;; GR1: 文字コード
+;; GR2: 行
+;; GR3: 列
 PUTCAHR nop
 
     ; width: 320
@@ -26,32 +29,35 @@ PUTCAHR nop
 
     push 0, gr4
     push 0, gr5
+    push 0, gr6
     push 0, gr7
 
-;    lad gr1, #41  ; char (0x41 = A)
-;    lad gr2, 3  ; row
-;    lad gr3, 0  ; col
-
-    lad gr4, #1000  ; frame buffer
+    ld gr6, gr3
+    and gr6, ONE  ; 1なら奇数列目
 
     ; フォントアドレス計算
     ; gr1 = FONT_0x00 + gr1 * 8 (1文字8word)
+
     ;   - gr0 = gr1 * 8
     push 0, gr2
     lad gr2, 8
     call MUL
     pop gr2
+
     ;   - gr1 = FONT_0x00 + gr0
     lad gr1, FONT_0x00
     addl gr1, gr0
 
-    ; 描画先アドレス計算  TODO: 0列目以外
-    ; gr4 = #1000 + gr2(row) * 320(width) * 16(1文字の縦ピクセル) / 16(1語あたりのピクセル数)
+    ; 描画先アドレス計算
+    ; gr4 = #1000 + gr3(col) / 2 + gr2(row) * 320(width) * 16(1文字の縦ピクセル) / 16(1語あたりのピクセル数)
     ;   - gr0 = gr2 * 320
     push 0, gr1
     lad gr1, 320
     call MUL
     pop gr1
+    ;   - gr0 += gr3 / 2
+    srl gr3, 1  ; gr3 /= 2
+    addl gr0, gr3
     ;   - gr4 = #1000 + gr0
     lad gr4, #1000
     addl gr4, gr0
@@ -65,28 +71,41 @@ PUTCAHR_loop nop
     subl gr7, ONE
 
     ; 上位バイト描画
-    ; [gr4] = ([gr1] & #ff00) | ([gr4] & #00ff)
-    ;   - gr2 = [gr4] & #00ff
-    ld gr2, 0, gr4
-    and gr2, =#00ff
-    ;   - gr5 = [gr1]
-    ;   - gr3 = gr5 & #ff00
-    ld gr5, 0, gr1
-    ld gr3, gr5
-    and gr3, =#ff00
-    ;   - gr2 = gr2 | gr3
-    or gr2, gr3
-    ;   - [gr4] = gr2
-    st gr2, 0, gr4
+    ld gr2, 0, gr4          ; gr2(描画ベース) = [gr4(描画先)]
+    cpl gr6, ZERO
+    jnz PUTCAHR_odd_1       ; if (gr6 == 0)
+        and gr2, =#00ff     ;   gr2 &= #00ff
+        jump PUTCHAR_label1 ; else
+PUTCAHR_odd_1 and gr2, =#ff00 ; gr2 &= #ff00
+PUTCHAR_label1 nop
+    ld gr5, 0, gr1          ; gr5(フォント) = [gr1(フォントアドレス)]
+    ld gr3, gr5             ; gr3 = gr5
+    cpl gr6, ZERO
+    jnz PUTCAHR_odd_2       ; if (gr6 == 0)
+        and gr3, =#ff00     ;   gr3 &= #ff00
+        jump PUTCHAR_label2 ; else
+PUTCAHR_odd_2 srl gr3, 8    ;   gr3 >>= 8
+PUTCHAR_label2 nop
+    or gr2, gr3             ; gr2 |= gr3
+    st gr2, 0, gr4          ; [gr4] = gr2
 
     ; 下位バイト描画
-    adda gr4, =20
-    ; [gr4] = (gr5 << 8) | ([gr4] & #00ff)
-    sll gr5, 8
-    ld gr2, 0, gr4
-    and gr2, =#00ff
-    or gr2, gr5
-    st gr2, 0, gr4
+    adda gr4, =20           ; gr4(描画先) += 20
+    ld gr2, 0, gr4          ; gr2 = [gr4]
+    cpl gr6, ZERO
+    jnz PUTCAHR_odd_3       ; if (gr6 == 0)
+        and gr2, =#00ff     ;   gr2 &= #00ff
+        jump PUTCHAR_label3 ; else
+PUTCAHR_odd_3 and gr2, =#ff00 ; gr2 &= #ff00
+PUTCHAR_label3 nop
+    cpl gr6, ZERO
+    jnz PUTCAHR_odd_4       ; if (gr6 == 0)
+        sll gr5, 8          ;   gr5(フォント) <<= 8
+        jump PUTCHAR_label4 ; else
+PUTCAHR_odd_4 and gr5, =#00ff ; gr5 &= #00ff
+PUTCHAR_label4 nop
+    or gr2, gr5             ; gr2 |= gr5
+    st gr2, 0, gr4          ; [gr4] = gr2
 
     ; フォントの次wordに
     adda gr1, =1
@@ -97,6 +116,7 @@ PUTCAHR_loop nop
 PUTCHAR_end nop
 
     pop gr7
+    pop gr6
     pop gr5
     pop gr4
 
