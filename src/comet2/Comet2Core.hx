@@ -364,6 +364,14 @@ class Comet2Core {
                         GR[i.r] = CAUSE;
                     case LD_STATUS:
                         GR[i.r] = STATUS.toWord();
+                    case LD_TVAL:
+                        GR[i.r] = TVAL;
+                    case LD_TVEC:
+                        GR[i.r] = TVEC;
+                    case LD_EPR:
+                        GR[i.r] = EPR;
+                    case LD_SCRATCH:
+                        GR[i.r] = SCRATCH;
                     case ST_SP:
                         SP = GR[i.r];
                     case ST_PTR:
@@ -372,6 +380,10 @@ class Comet2Core {
                         IE = IERegister.fromWord(GR[i.r]);
                     case ST_STATUS:
                         STATUS = StatusRegister.fromWord(GR[i.r]);
+                    case ST_TVEC:
+                        TVEC = GR[i.r];
+                    case ST_SCRATCH:
+                        SCRATCH = GR[i.r];
                 }
             case N(i):
                 switch (i.mnemonic) {
@@ -379,7 +391,10 @@ class Comet2Core {
                     case RET:
                         nextPR = pop();
                     case IRET:
-                        trace('Not Implemented. (${inst.toString()})');
+                        STATUS.PL = STATUS.PPL;
+                        STATUS.IE = STATUS.PIE;
+                        nextPR = EPR;
+                        inTrap = false;
                 }
         }
 

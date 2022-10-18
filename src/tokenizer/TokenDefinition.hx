@@ -56,10 +56,16 @@ enum MnemonicToken {
     LD_IW;
     LD_CAUSE;
     LD_STATUS;
+    LD_TVAL;
+    LD_TVEC;
+    LD_EPR;
+    LD_SCRATCH;
     ST_SP;
     ST_PTR;
     ST_IE;
     ST_STATUS;
+    ST_TVEC;
+    ST_SCRATCH;
     SVC;
     INT;
     IRET;

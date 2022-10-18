@@ -1975,38 +1975,38 @@
   <tr>
     <td>6</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.TVAL</td>
+    <td>* load TVAL register</td>
   </tr>
   <tr>
     <td>7</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.TVEC</td>
+    <td>* load TVEC register</td>
   </tr>
   <tr>
     <td>8</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.EPR</td>
+    <td>* load EPR register</td>
   </tr>
   <tr>
     <td>9</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>LD.SCRATCH</td>
+    <td>* load SCRATCH register</td>
   </tr>
   <tr>
     <td>A</td>
@@ -2120,38 +2120,38 @@
   <tr>
     <td>6</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>ST.TVAL</td>
+    <td>* store TVAL register</td>
   </tr>
   <tr>
     <td>7</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>ST.TVEC</td>
+    <td>* store TVEC register</td>
   </tr>
   <tr>
     <td>8</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>ST.EPR</td>
+    <td>* store EPR register</td>
   </tr>
   <tr>
     <td>9</td>
     <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>-</td>
+    <td>-</td>
+    <td>1</td>
+    <td>ST.SCRATCH</td>
+    <td>* store SCRATCH register</td>
   </tr>
   <tr>
     <td>A</td>

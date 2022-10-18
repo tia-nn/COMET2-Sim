@@ -1,0 +1,5 @@
+./dependencies.hxml
+
+--class-path src
+--main Comet2
+--hl bin/comet2.hl

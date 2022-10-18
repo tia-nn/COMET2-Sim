@@ -130,3 +130,19 @@
 
 - ST.IE
 - ST.STATUS
+
+### 動作
+
+STATUS.IE && IE.* && IW.* の時、
+
+- EPR <- 例外が起きたPR (割り込みの時はハンドラが戻るべきPR)
+- CAUSE <- 例外コード
+- TVAL <- アドレス例外を起こしたアドレス、または不正命令例外を起こした命令　それ以外は0
+- STATUS.PIE <- STATUS.IE; STATUS.IE = 0
+- STATUS.PPL <- STATUS.PL; STATUS.PL = 0
+
+IRET
+
+- STATUS.PL <- STATUS.PPL
+- STATUS.IE <- STATUS.PIE
+- PR <- EPR

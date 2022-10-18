@@ -1,0 +1,5 @@
+./dependencies.hxml
+
+--class-path src
+--main Casl2
+--hl bin/casl2.hl

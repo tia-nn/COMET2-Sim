@@ -177,6 +177,14 @@ class InstructionTools {
                 P({mnemonic: LD_CAUSE, r: r_r1});
             case 0xd5:
                 P({mnemonic: LD_STATUS, r: r_r1});
+            case 0xd6:
+                P({mnemonic: LD_TVAL, r: r_r1});
+            case 0xd7:
+                P({mnemonic: LD_TVEC, r: r_r1});
+            case 0xd8:
+                P({mnemonic: LD_EPR, r: r_r1});
+            case 0xd9:
+                P({mnemonic: LD_SCRATCH, r: r_r1});
             case 0xe0:
                 P({mnemonic: ST_SP, r: r_r1});
             case 0xe1:
@@ -185,6 +193,10 @@ class InstructionTools {
                 P({mnemonic: ST_IE, r: r_r1});
             case 0xe5:
                 P({mnemonic: ST_STATUS, r: r_r1});
+            case 0xe7:
+                P({mnemonic: ST_TVEC, r: r_r1});
+            case 0xe9:
+                P({mnemonic: ST_SCRATCH, r: r_r1});
             case 0xf0:
                 J({mnemonic: SVC, addr: addr, x: x,});
             case 0xf1:
@@ -201,7 +213,8 @@ class InstructionTools {
         return switch (inst) {
             case P(i):
                 switch (i.mnemonic) {
-                    case LD_SP, LD_PTR, LD_IW, LD_CAUSE, LD_STATUS, ST_SP, ST_PTR, ST_IE, ST_STATUS:
+                    case LD_SP, LD_PTR, LD_IW, LD_CAUSE, LD_STATUS, LD_TVAL, LD_TVEC, LD_EPR, LD_SCRATCH, ST_SP, ST_PTR, ST_IE, ST_STATUS, ST_TVEC, ST_SCRATCH:
+
                         true;
                     default:
                         false;

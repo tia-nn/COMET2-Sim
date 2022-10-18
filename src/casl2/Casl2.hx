@@ -127,6 +127,14 @@ class Casl2 {
                         {text: [new Word(0xd400 | i.r << 4)]}
                     case LD_STATUS:
                         {text: [new Word(0xd500 | i.r << 4)]}
+                    case LD_TVAL:
+                        {text: [new Word(0xd600 | i.r << 4)]}
+                    case LD_TVEC:
+                        {text: [new Word(0xd700 | i.r << 4)]}
+                    case LD_EPR:
+                        {text: [new Word(0xd800 | i.r << 4)]}
+                    case LD_SCRATCH:
+                        {text: [new Word(0xd900 | i.r << 4)]}
                     case ST_SP:
                         {text: [new Word(0xe000 | i.r << 4)]}
                     case ST_PTR:
@@ -135,6 +143,10 @@ class Casl2 {
                         {text: [new Word(0xe200 | i.r << 4)]}
                     case ST_STATUS:
                         {text: [new Word(0xe500 | i.r << 4)]}
+                    case ST_TVEC:
+                        {text: [new Word(0xe700 | i.r << 4)]}
+                    case ST_SCRATCH:
+                        {text: [new Word(0xe900 | i.r << 4)]}
                 }
             case N(i):
                 switch (i.mnemonic) {

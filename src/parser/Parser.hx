@@ -905,6 +905,14 @@ class Parser {
                         Success(LD_CAUSE);
                     case LD_STATUS:
                         Success(LD_STATUS);
+                    case LD_TVAL:
+                        Success(LD_TVAL);
+                    case LD_TVEC:
+                        Success(LD_TVEC);
+                    case LD_EPR:
+                        Success(LD_EPR);
+                    case LD_SCRATCH:
+                        Success(LD_SCRATCH);
                     case ST_SP:
                         Success(ST_SP);
                     case ST_PTR:
@@ -913,6 +921,10 @@ class Parser {
                         Success(ST_IE);
                     case ST_STATUS:
                         Success(ST_STATUS);
+                    case ST_TVEC:
+                        Success(ST_TVEC);
+                    case ST_SCRATCH:
+                        Success(ST_SCRATCH);
                     case _:
                         Unmatched("");
                 }

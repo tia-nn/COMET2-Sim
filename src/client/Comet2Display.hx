@@ -56,6 +56,7 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
             <button onClick=${onStepButtonClick}>step</button>
             <button onClick=${on10StepButtonClick}>10step</button>
             <button onClick=${on100StepButtonClick}>100step</button>
+            <button onClick=${on1000StepButtonClick}>1000step</button>
             <button onClick=${onIntButtonClick}>INT</button>
 
             <div>
@@ -225,6 +226,26 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
         var lastPR = lastMachine.PR;
         var lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
         for (i in 0...100) {
+            lastMachine = machine.frozen();
+            lastPR = lastMachine.PR;
+            lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
+            machine.step();
+        }
+        final frozen = machine.frozen();
+        final imageData = createImageData(frozen.memory, state.framebuffer, state.canvasWidth, state.canvasHeight);
+        setState({
+            machine: frozen,
+            lastPR: lastPR,
+            lastInst: lastInst,
+            imageData: imageData,
+        });
+    }
+
+    function on1000StepButtonClick(ev) {
+        var lastMachine = machine.frozen();
+        var lastPR = lastMachine.PR;
+        var lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
+        for (i in 0...1000) {
             lastMachine = machine.frozen();
             lastPR = lastMachine.PR;
             lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);

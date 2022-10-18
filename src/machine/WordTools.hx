@@ -178,6 +178,14 @@ class WordTools {
                 P({mnemonic: LD_CAUSE, r: r_r1});
             case 0xd5:
                 P({mnemonic: LD_STATUS, r: r_r1});
+            case 0xd6:
+                P({mnemonic: LD_TVAL, r: r_r1});
+            case 0xd7:
+                P({mnemonic: LD_TVEC, r: r_r1});
+            case 0xd8:
+                P({mnemonic: LD_EPR, r: r_r1});
+            case 0xd9:
+                P({mnemonic: LD_SCRATCH, r: r_r1});
             case 0xe0:
                 P({mnemonic: ST_SP, r: r_r1});
             case 0xe1:
@@ -186,6 +194,10 @@ class WordTools {
                 P({mnemonic: ST_IE, r: r_r1});
             case 0xe5:
                 P({mnemonic: ST_STATUS, r: r_r1});
+            case 0xe7:
+                P({mnemonic: ST_TVEC, r: r_r1});
+            case 0xe9:
+                P({mnemonic: ST_SCRATCH, r: r_r1});
             case 0xf0:
                 J({mnemonic: SVC, addr: addr(), x: x,});
             case 0xf1:
