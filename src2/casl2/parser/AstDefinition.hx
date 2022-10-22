@@ -2,8 +2,8 @@ package casl2.parser;
 
 import extype.Nullable;
 import extype.ReadOnlyArray;
-import types.Integer.GRIndex1_7;
 import types.Integer.GRIndex;
+import types.Integer.IRIndex;
 import types.Integer.Word;
 
 typedef LabeledInstruction = {
@@ -30,12 +30,12 @@ typedef ROperand = {
 typedef IOperand = {
     final r:GRIndex;
     final addr:Addr;
-    final ?x:Nullable<GRIndex1_7>;
+    final ?x:Nullable<IRIndex>;
 };
 
 typedef JOperand = {
     final addr:Addr;
-    final ?x:Nullable<GRIndex1_7>;
+    final ?x:Nullable<IRIndex>;
 };
 
 typedef POperand = {
@@ -146,7 +146,5 @@ enum NMnemonic {
     #if extension_instructions
     NOP;
     IRET;
-    EI;
-    DI;
     #end
 }

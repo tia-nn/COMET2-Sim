@@ -4,7 +4,7 @@ import extype.Nullable;
 import extype.ReadOnlyArray;
 import types.FilePosition;
 
-// @:using(casl2.parser.ParseResult.ParseResultTools)
+@:using(casl2.parser.ParseResult.ParseResultTools)
 enum ParseResult<T> {
     Success(result:T, position:FilePosition);
     Error(tmpResult:Nullable<T>, position:FilePosition, errors:ReadOnlyArray<ParseError>);
@@ -43,5 +43,14 @@ class ParseResultTools {
             col: a.col,
             len: b.col - a.col + b.len.getOrElse(0)
         };
+    }
+
+    public static function getPosition<A>(pos:ParseResult<A>):FilePosition {
+        switch (pos) {
+            case Success(result, position):
+                return position;
+            case Error(tmpResult, position, errors):
+                return position;
+        }
     }
 }

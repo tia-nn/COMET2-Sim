@@ -3,7 +3,8 @@ package casl2.tokenizer;
 import extype.ReadOnlyArray;
 import types.FilePosition;
 
-typedef TokenList = ReadOnlyArray<ReadOnlyArray<TokenInfo>>;
+typedef TokenList = ReadOnlyArray<InstTokenList>;
+typedef InstTokenList = ReadOnlyArray<TokenInfo>;
 
 typedef TokenInfo = {
     final token:Token;
@@ -58,8 +59,6 @@ enum MnemonicToken {
     // additional
     INT;
     IRET;
-    EI;
-    DI;
     NOP;
     // macro
     START;

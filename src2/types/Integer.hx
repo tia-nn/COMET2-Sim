@@ -16,16 +16,16 @@ abstract GRIndex(Int) to Int {
         }
     }
 
-    public function to1_7():Nullable<GRIndex1_7> {
+    public function to1_7():Nullable<IRIndex> {
         return if (this == 0) {
             Nullable.empty();
         } else {
-            new GRIndex1_7(this);
+            new IRIndex(this);
         }
     }
 }
 
-abstract GRIndex1_7(Int) to Int {
+abstract IRIndex(Int) to Int {
     public function new(n:Int) {
         if (1 <= n && n < 8) {
             this = n;
