@@ -13,6 +13,7 @@ import react.ReactMacro.jsx;
 import types.Word;
 
 using StringTools;
+using comet2.BoolTools;
 using comet2.InstructionTools;
 
 class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplayState> {
@@ -28,11 +29,12 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
             memoryRenderAddr: "000",
             lastPR: 0,
             lastInst: Success(N({mnemonic: NOP})),
-            canvasHeight: 150,
+            canvasHeight: 160,
             canvasWidth: 320,
             framebuffer: 0x1000,
-            imageData: createImageData(frozen.memory, 0, 320, 150),
+            imageData: createImageData(frozen.memory, 0, 320, 160),
             displayAllMemory: false,
+            stepN: 100
         };
     }
 
@@ -51,82 +53,44 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
                 'Invalid Instruction (0x${error.hex(4)})';
         }
 
-        return jsx('<div>
+        return jsx('<div className="flex gap-2 flex-col">
 
-            <button onClick=${onStepButtonClick}>step</button>
-            <button onClick=${on10StepButtonClick}>10step</button>
-            <button onClick=${on100StepButtonClick}>100step</button>
-            <button onClick=${on1000StepButtonClick}>1000step</button>
-            <button onClick=${onIntButtonClick}>INT</button>
+            <div className="flex gap-2">
 
-            <div>
-                <span>GR0: <input value=${state.machine.GR[0]} readOnly /></span>
-                <span>GR1: <input value=${state.machine.GR[1]} readOnly /></span>
-                <span>GR2: <input value=${state.machine.GR[2]} readOnly /></span>
-                <span>GR3: <input value=${state.machine.GR[3]} readOnly /></span>
-            </div>
-            <div>
-                <span>GR4: <input value=${state.machine.GR[4]} readOnly /></span>
-                <span>GR5: <input value=${state.machine.GR[5]} readOnly /></span>
-                <span>GR6: <input value=${state.machine.GR[6]} readOnly /></span>
-                <span>GR7: <input value=${state.machine.GR[7]} readOnly /></span>
+                <button onClick=${onStepButtonClick} className="rounded-full px-2 py-1 bg-red-100 text-gray-900">step</button>
+                <button onClick=${onNStepButtonClick} className="rounded-full px-2 py-1 bg-red-100 text-gray-900">
+                    <input onChange=${e -> setState({stepN: e.target.value})} onClick=${e -> e.stopPropagation()} value=${state.stepN} type="Number" className="p-1 w-20 text-sm" />
+                    step
+                </button>
+                <button onClick=${onIntButtonClick} className="rounded-full px-2 py-1 bg-green-100 text-gray-900" >INT</button>
+
             </div>
 
-            <div>
-                <span>SP: <input value=${state.machine.SP} readOnly /></span>
-                <span>PR: <input value=${state.machine.PR} readOnly /></span>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+                <label>GR0: <input value=${state.machine.GR[0]} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.GR[0].hex(4)}) </label>
+                <label>GR1: <input value=${state.machine.GR[1]} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.GR[1].hex(4)}) </label>
+                <label>GR2: <input value=${state.machine.GR[2]} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.GR[2].hex(4)}) </label>
+                <label>GR3: <input value=${state.machine.GR[3]} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.GR[3].hex(4)}) </label>
+                <label>GR4: <input value=${state.machine.GR[4]} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.GR[4].hex(4)}) </label>
+                <label>GR5: <input value=${state.machine.GR[5]} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.GR[5].hex(4)}) </label>
+                <label>GR6: <input value=${state.machine.GR[6]} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.GR[6].hex(4)}) </label>
+                <label>GR7: <input value=${state.machine.GR[7]} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.GR[7].hex(4)}) </label>
             </div>
 
-            <div>
-                FR:
-                <span>ZF: <input value=${state.machine.FR.ZF} readOnly /></span>
-                <span>SF: <input value=${state.machine.FR.SF} readOnly /></span>
-                <span>OF: <input value=${state.machine.FR.OF} readOnly /></span>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+                <label>SP: <input value=${state.machine.SP} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.SP.hex(4)}) </label>
+                <label>PR: <input value=${state.machine.PR} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.PR.hex(4)}) </label>
+            </div>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+                <span className="mr-3">FR:</span>
+                <label>ZF: <input value=${state.machine.FR.ZF.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+                <label>SF: <input value=${state.machine.FR.SF.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+                <label>OF: <input value=${state.machine.FR.OF.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
             </div>
 
             <p>last: ${lastInstStr}</p>
             <p>next: ${nextInstStr}</p>
-
-            <hr/>
-            <h4>CSR</h4>
-
-            <div>
-                <span>PTR: <input value=${state.machine.PTR} readOnly /></span>
-            </div>
-
-            <div>
-                IE:
-                <span>E: <input value=${state.machine.IE.external} readOnly /></span>
-                <span>T: <input value=${state.machine.IE.timer} readOnly /></span>
-                <span>S: <input value=${state.machine.IE.software} readOnly /></span>
-            </div>
-
-            <div>
-                IW:
-                <span>E: <input value=${state.machine.IW.external} readOnly /></span>
-                <span>T: <input value=${state.machine.IW.timer} readOnly /></span>
-                <span>S: <input value=${state.machine.IW.software} readOnly /></span>
-            </div>
-
-            <div>
-                <span>TVEC: <input value=${state.machine.TVEC} readOnly /></span>
-            </div>
-
-            <div>
-                <span>EPR: <input value=${state.machine.EPR} readOnly /></span>
-                <span>CAUSE: <input value=${state.machine.CAUSE} readOnly /></span>
-                <span>TVAL: <input value=${state.machine.TVAL} readOnly /></span>
-                <span>SCRATCH: <input value=${state.machine.SCRATCH} readOnly /></span>
-            </div>
-
-            <div>
-                STATUS:
-                <span>PPL: <input value=${state.machine.STATUS.PPL} readOnly /></span>
-                <span>PL: <input value=${state.machine.STATUS.PL} readOnly /></span>
-                <span>PIE: <input value=${state.machine.STATUS.PIE} readOnly /></span>
-                <span>IE: <input value=${state.machine.STATUS.IE} readOnly /></span>
-            </div>
-
 
             <hr/>
 
@@ -136,9 +100,55 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
 
             <hr/>
 
+            <h4>CSR</h4>
+
+            <div>
+                <label>PTR: <input value=${state.machine.PTR} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.PTR.hex(4)}) </label>
+            </div>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+                IE:
+                <label>E: <input value=${state.machine.IE.external.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+                <label>T: <input value=${state.machine.IE.timer.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+                <label>S: <input value=${state.machine.IE.software.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+            </div>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+                IW:
+                <label>E: <input value=${state.machine.IW.external.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+                <label>T: <input value=${state.machine.IW.timer.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+                <label>S: <input value=${state.machine.IW.software.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+            </div>
+
+            <div>
+                <label>TVEC: <input value=${state.machine.TVEC} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.TVEC.hex(4)}) </label>
+            </div>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+                <label>EPR: <input value=${state.machine.EPR} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.EPR.hex(4)}) </label>
+                <label>CAUSE: <input value=${state.machine.CAUSE} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.CAUSE.hex(4)}) </label>
+                <label>TVAL: <input value=${state.machine.TVAL} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.TVAL.hex(4)}) </label>
+                <label>SCRATCH: <input value=${state.machine.SCRATCH} readOnly className="w-14 p-1 bg-gray-100" /> (0x${state.machine.SCRATCH.hex(4)}) </label>
+            </div>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+                STATUS:
+                <label>PPL: <input value=${state.machine.STATUS.PPL.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+                <label>PL: <input value=${state.machine.STATUS.PL.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+                <label>PIE: <input value=${state.machine.STATUS.PIE.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+                <label>IE: <input value=${state.machine.STATUS.IE.toInt()} readOnly className="w-5 p-1 bg-gray-100" /></label>
+            </div>
+
+            <hr/>
+
             <h4>Memory</h4>
-            <button onClick=${() -> setState({displayAllMemory: !state.displayAllMemory})}>all</button>
-            0x<input onChange=${onRenderAddrChange} value=${state.memoryRenderAddr} />0
+
+            <div>
+                <button onClick=${() -> setState({displayAllMemory: !state.displayAllMemory})} className="rounded-full px-2 py-1 bg-red-100">all</button>
+            </div>
+            <div>
+                0x<input onChange=${onRenderAddrChange} value=${state.memoryRenderAddr} className="w-10 p-1 bg-gray-100" />0
+            </div>
 
             ${renderMemoryTable()}
 
@@ -201,51 +211,11 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
         });
     }
 
-    function on10StepButtonClick(ev) {
+    function onNStepButtonClick(ev) {
         var lastMachine = machine.frozen();
         var lastPR = lastMachine.PR;
         var lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
-        for (i in 0...10) {
-            lastMachine = machine.frozen();
-            lastPR = lastMachine.PR;
-            lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
-            machine.step();
-        }
-        final frozen = machine.frozen();
-        final imageData = createImageData(frozen.memory, state.framebuffer, state.canvasWidth, state.canvasHeight);
-        setState({
-            machine: frozen,
-            lastPR: lastPR,
-            lastInst: lastInst,
-            imageData: imageData,
-        });
-    }
-
-    function on100StepButtonClick(ev) {
-        var lastMachine = machine.frozen();
-        var lastPR = lastMachine.PR;
-        var lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
-        for (i in 0...100) {
-            lastMachine = machine.frozen();
-            lastPR = lastMachine.PR;
-            lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
-            machine.step();
-        }
-        final frozen = machine.frozen();
-        final imageData = createImageData(frozen.memory, state.framebuffer, state.canvasWidth, state.canvasHeight);
-        setState({
-            machine: frozen,
-            lastPR: lastPR,
-            lastInst: lastInst,
-            imageData: imageData,
-        });
-    }
-
-    function on1000StepButtonClick(ev) {
-        var lastMachine = machine.frozen();
-        var lastPR = lastMachine.PR;
-        var lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
-        for (i in 0...1000) {
+        for (i in 0...state.stepN) {
             lastMachine = machine.frozen();
             lastPR = lastMachine.PR;
             lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
@@ -318,4 +288,5 @@ typedef Comet2DisplayState = {
     final framebuffer:Int;
     final imageData:ImageData;
     final displayAllMemory:Bool;
+    final stepN:Int;
 }

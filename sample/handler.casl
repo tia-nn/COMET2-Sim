@@ -21,8 +21,8 @@ TRAPHANDLER nop
     push 0, gr7
 
     lad gr1, HANDLER_str
-    lad gr2, 8
-    lad gr3, 1
+    lad gr2, 9
+    lad gr3, 22
     call PRINT
 
     pop gr7
@@ -199,8 +199,8 @@ MUL_end nop
 
 ; data
 
-ZERO DC 0
-ONE DC 1
+ZERO      DC      0
+ONE       DC      1
 
 FONT_0x00   DC #0000,#0000,#0000,#0000,#0000,#0000,#0000,#0000
 FONT_0x01   DC #0000,#3844,#82aa,#aa82,#82aa,#9244,#3800,#0000

@@ -4,13 +4,15 @@ import js.Browser;
 import react.ReactComponent;
 import react.ReactDOM;
 import react.ReactMacro.jsx;
+import react.StrictMode;
 
 class App extends ReactComponent {
     override function render():ReactFragment {
-        return jsx('<main className="container mx-auto">
-            <h1 className="text-3xl">Comet-II Core Simulator</h1>
-            <$IntegrationConsole />
-        </main>');
+        return jsx('<$StrictMode>
+            <main className="container mx-auto">
+                <$IntegrationConsole />
+            </main>
+        </$StrictMode>');
     }
 
     static function main() {

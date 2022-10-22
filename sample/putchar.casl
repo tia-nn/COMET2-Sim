@@ -25,7 +25,8 @@ MAIN_LOOP jump MAIN_LOOP
 PUTCAHR nop
 
     ; width: 320
-    ; height: 150
+    ; height: 160
+    ; framebuffer: #1000
 
     push 0, gr4
     push 0, gr5
@@ -33,37 +34,29 @@ PUTCAHR nop
     push 0, gr7
 
     ld gr6, gr3
-    and gr6, ONE  ; 1なら奇数列目
+    and gr6, ONE                ; gr6 (is奇数)
 
-    ; フォントアドレス計算
-    ; gr1 = FONT_0x00 + gr1 * 8 (1文字8word)
-
-    ;   - gr0 = gr1 * 8
+    ; フォントアドレス gr1 = FONT_0x00 + gr1 * 8 (1文字8word)
     push 0, gr2
     lad gr2, 8
-    call MUL
+    call MUL                    ; gr0 = gr1 * 8
     pop gr2
 
-    ;   - gr1 = FONT_0x00 + gr0
     lad gr1, FONT_0x00
-    addl gr1, gr0
+    addl gr1, gr0               ; gr1 = FONT_0x00 + gr0
 
-    ; 描画先アドレス計算
-    ; gr4 = #1000 + gr3(col) / 2 + gr2(row) * 320(width) * 16(1文字の縦ピクセル) / 16(1語あたりのピクセル数)
-    ;   - gr0 = gr2 * 320
+    ; 描画先アドレス gr4 = #1000 + gr3(col) / 2 + gr2(row) * 320(width) * 16(1文字の縦ピクセル) / 16(1語あたりのピクセル数)
     push 0, gr1
     lad gr1, 320
-    call MUL
+    call MUL                    ; gr0 = gr2 * 320
     pop gr1
-    ;   - gr0 += gr3 / 2
-    srl gr3, 1  ; gr3 /= 2
-    addl gr0, gr3
-    ;   - gr4 = #1000 + gr0
+    srl gr3, 1                  ; gr3 /= 2
+    addl gr0, gr3               ; gr0 += gr3
     lad gr4, #1000
-    addl gr4, gr0
+    addl gr4, gr0               ; - gr4 = #1000 + gr0
     ; del gr1,gr2
 
-    ; for (gr7 = 8; gr7 > 0; gr7--)
+                                ; for (gr7 = 8; gr7 > 0; gr7--)
     lad gr7, 8
 PUTCAHR_loop nop
     cpl gr7, ZERO
@@ -71,44 +64,44 @@ PUTCAHR_loop nop
     subl gr7, ONE
 
     ; 上位バイト描画
-    ld gr2, 0, gr4          ; gr2(描画ベース) = [gr4(描画先)]
+    ld gr2, 0, gr4              ; gr2(描画ベース) = [gr4(描画先)]
     cpl gr6, ZERO
-    jnz PUTCAHR_odd_1       ; if (gr6 == 0)
-        and gr2, =#00ff     ;   gr2 &= #00ff
-        jump PUTCHAR_label1 ; else
-PUTCAHR_odd_1 and gr2, =#ff00 ; gr2 &= #ff00
+    jnz PUTCAHR_odd_1           ; if (gr6 == 0)
+        and gr2, =#00ff         ;   gr2 &= #00ff
+        jump PUTCHAR_label1     ; else
+PUTCAHR_odd_1 and gr2, =#ff00   ;   gr2 &= #ff00
 PUTCHAR_label1 nop
-    ld gr5, 0, gr1          ; gr5(フォント) = [gr1(フォントアドレス)]
-    ld gr3, gr5             ; gr3 = gr5
+    ld gr5, 0, gr1              ; gr5(フォント) = [gr1(フォントアドレス)]
+    ld gr3, gr5                 ; gr3 = gr5
     cpl gr6, ZERO
-    jnz PUTCAHR_odd_2       ; if (gr6 == 0)
-        and gr3, =#ff00     ;   gr3 &= #ff00
-        jump PUTCHAR_label2 ; else
-PUTCAHR_odd_2 srl gr3, 8    ;   gr3 >>= 8
+    jnz PUTCAHR_odd_2           ; if (gr6 == 0)
+        and gr3, =#ff00         ;   gr3 &= #ff00
+        jump PUTCHAR_label2     ; else
+PUTCAHR_odd_2 srl gr3, 8        ;   gr3 >>= 8
 PUTCHAR_label2 nop
-    or gr2, gr3             ; gr2 |= gr3
-    st gr2, 0, gr4          ; [gr4] = gr2
+    or gr2, gr3                 ; gr2 |= gr3
+    st gr2, 0, gr4              ; [gr4] = gr2
 
     ; 下位バイト描画
-    adda gr4, =20           ; gr4(描画先) += 20
-    ld gr2, 0, gr4          ; gr2 = [gr4]
+    adda gr4, =20               ; gr4(描画先) += 20
+    ld gr2, 0, gr4              ; gr2 = [gr4]
     cpl gr6, ZERO
-    jnz PUTCAHR_odd_3       ; if (gr6 == 0)
-        and gr2, =#00ff     ;   gr2 &= #00ff
-        jump PUTCHAR_label3 ; else
-PUTCAHR_odd_3 and gr2, =#ff00 ; gr2 &= #ff00
+    jnz PUTCAHR_odd_3           ; if (gr6 == 0)
+        and gr2, =#00ff         ;   gr2 &= #00ff
+        jump PUTCHAR_label3     ; else
+PUTCAHR_odd_3 and gr2, =#ff00   ;   gr2 &= #ff00
 PUTCHAR_label3 nop
     cpl gr6, ZERO
-    jnz PUTCAHR_odd_4       ; if (gr6 == 0)
-        sll gr5, 8          ;   gr5(フォント) <<= 8
-        jump PUTCHAR_label4 ; else
-PUTCAHR_odd_4 and gr5, =#00ff ; gr5 &= #00ff
+    jnz PUTCAHR_odd_4           ; if (gr6 == 0)
+        sll gr5, 8              ;   gr5(フォント) <<= 8
+        jump PUTCHAR_label4     ; else
+PUTCAHR_odd_4 and gr5, =#00ff   ;   gr5 &= #00ff
 PUTCHAR_label4 nop
-    or gr2, gr5             ; gr2 |= gr5
-    st gr2, 0, gr4          ; [gr4] = gr2
+    or gr2, gr5                 ; gr2 |= gr5
+    st gr2, 0, gr4              ; [gr4] = gr2
 
     ; フォントの次wordに
-    adda gr1, =1
+    adda gr1, ONE
     adda gr4, =20
 
     jump PUTCAHR_loop

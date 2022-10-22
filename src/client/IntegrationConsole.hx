@@ -15,11 +15,19 @@ class IntegrationConsole extends ReactComponentOf<{}, IntegrationConsoleState> {
     }
 
     override function render():ReactFragment {
-        return jsx('<div>
-            <$Casl2Console onCompile=${(p) -> setState({program: p})} />
-            <hr />
-            <$Comet2Display program=${state.program} />
-        </div>');
+        return jsx('<main className="container mx-auto">
+            <h1 className="text-3xl">Comet-II Core Simulator</h1>
+
+            <div className="flex">
+            <section className="flex-1 p-2"> assembler section
+                <$Casl2Console onCompile=${_ -> {}} onSendButtonClick=${p -> setState({program: p})} />
+            </section>
+            <section className="flex-1 p-2"> machine section
+                <$Comet2Display program=${state.program} />
+            </section>
+            </div>
+        </main>');
+
     }
 }
 
