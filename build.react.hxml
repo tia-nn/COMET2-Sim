@@ -1,0 +1,8 @@
+./dependencies.hxml
+
+--class-path src
+--main client.App
+
+--library react-next
+
+--js app/index.js

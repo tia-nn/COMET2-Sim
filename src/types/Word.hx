@@ -60,8 +60,8 @@ abstract Word(Int) to Int {
         this = v & 0xffff;
     }
 
-    public function toString(?bytesep:String = "") {
-        return ((this & 0xff00) >> 8).hex(2) + bytesep + (this & 0x00ff).hex(2);
+    public function toString(prefix:String = "0x", bytesep:String = "") {
+        return prefix + ((this & 0xff00) >> 8).hex(2) + bytesep + (this & 0x00ff).hex(2);
     }
 
     public function toSigned():Int {
@@ -105,6 +105,7 @@ abstract Word(Int) to Int {
         }, 0));
     }
 
+    @:to
     public function toUnsigned():Int {
         return this;
     }
@@ -119,9 +120,24 @@ abstract Word(Int) to Int {
         return new Word(toUnsigned() - rhs);
     }
 
+    @:op(A & B)
+    public function and(rhs:Word) {
+        return new Word(toUnsigned() & rhs);
+    }
+
+    @:op(A | B)
+    public function or(rhs:Word) {
+        return new Word(toUnsigned() | rhs);
+    }
+
+    @:op(A ^ B)
+    public function xor(rhs:Word) {
+        return new Word(toUnsigned() ^ rhs);
+    }
+
     public function sla(rhs:Word):Word {
         return if ((rhs : Int) > 14) {
-            new Word(this & 0x7fff);
+            new Word(this & 0x8000);
         } else {
             final arr = toBitArray();
             final sign = arr[0];
@@ -165,5 +181,15 @@ abstract Word(Int) to Int {
             final arr = [for (_ in 0...rhs) 0].concat(arr.slice(0, 16 - rhs));
             fromBitArray(arr);
         }
+    }
+
+    @:op(A < B)
+    public function lt(rhs:Word):Bool {
+        return this < (rhs : Int);
+    }
+
+    @:op(A > B)
+    public function gt(rhs:Word):Bool {
+        return this > (rhs : Int);
     }
 }

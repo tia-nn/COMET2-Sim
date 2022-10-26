@@ -1,9 +1,15 @@
-/bin
-/scripts
 .haxelib
+node_modules
+yarn.lock
+
+/bin
+/dist
+/app
+
+/scripts
 
 dump.*
 
 comet2dump.txt
 comet2display.txt
-comet2/
+/comet2/

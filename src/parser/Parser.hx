@@ -893,6 +893,38 @@ class Parser {
                 switch (mnemonic) {
                     case POP:
                         Success(POP);
+                    case LD_SP:
+                        Success(LD_SP);
+                    case LD_PTR:
+                        Success(LD_PTR);
+                    case LD_IE:
+                        Success(LD_IE);
+                    case LD_IW:
+                        Success(LD_IW);
+                    case LD_CAUSE:
+                        Success(LD_CAUSE);
+                    case LD_STATUS:
+                        Success(LD_STATUS);
+                    case LD_TVAL:
+                        Success(LD_TVAL);
+                    case LD_TVEC:
+                        Success(LD_TVEC);
+                    case LD_EPR:
+                        Success(LD_EPR);
+                    case LD_SCRATCH:
+                        Success(LD_SCRATCH);
+                    case ST_SP:
+                        Success(ST_SP);
+                    case ST_PTR:
+                        Success(ST_PTR);
+                    case ST_IE:
+                        Success(ST_IE);
+                    case ST_STATUS:
+                        Success(ST_STATUS);
+                    case ST_TVEC:
+                        Success(ST_TVEC);
+                    case ST_SCRATCH:
+                        Success(ST_SCRATCH);
                     case _:
                         Unmatched("");
                 }
@@ -921,10 +953,6 @@ class Parser {
                         Success(NOP);
                     case IRET:
                         Success(IRET);
-                    case EI:
-                        Success(EI);
-                    case DI:
-                        Success(DI);
                     case _:
                         Unmatched("");
                 }
