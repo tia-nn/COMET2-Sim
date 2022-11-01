@@ -3,7 +3,6 @@ package parser;
 import extype.Exception;
 import extype.Nullable;
 import extype.ReadOnlyArray;
-import extype.Tuple.Tuple2;
 import haxe.iterators.StringKeyValueIteratorUnicode;
 import tokenizer.TokenDefinition.Token;
 import tokenizer.TokenDefinition.TokenInfo;
@@ -274,8 +273,9 @@ class Parser {
             parseEndInstruction,
             parseDSInstruction,
             parseDCInstruction,
-            parseInOutInstruction,
-            parseRStackInstruction
+            // parseInOutInstruction,
+            parseRStackInstruction,
+            parseMacroJInstruction,
         ]) {
             switch (fn()) {
                 case Success(r):
@@ -333,26 +333,25 @@ class Parser {
         }
     }
 
-    function parseInOutInstruction():ParseResult<AInstruction> {
-        final inout = if (consumeInMnemonic()) {
-            "in";
-        } else if (consumeOutMnemonic()) {
-            "out";
-        } else return Unmatched("");
-
-        return switch (parseInOutOperand()) {
-            case Success(r):
-                if (inout == "in") {
-                    Success(IN(r.value1, r.value2));
-                } else if (inout == "out") {
-                    Success(OUT(r.value1, r.value2));
-                } else {
-                    Unmatched("到達しないはず.");
-                }
-            case Unmatched(message):
-                Unmatched(message);
-        }
-    }
+    // function parseInOutInstruction():ParseResult<AInstruction> {
+    //     final inout = if (consumeInMnemonic()) {
+    //         "in";
+    //     } else if (consumeOutMnemonic()) {
+    //         "out";
+    //     } else return Unmatched("");
+    //     return switch (parseInOutOperand()) {
+    //         case Success(r):
+    //             if (inout == "in") {
+    //                 Success(IN(r.value1, r.value2));
+    //             } else if (inout == "out") {
+    //                 Success(OUT(r.value1, r.value2));
+    //             } else {
+    //                 Unmatched("到達しないはず.");
+    //             }
+    //         case Unmatched(message):
+    //             Unmatched(message);
+    //     }
+    // }
 
     function parseRStackInstruction():ParseResult<AInstruction> {
         if (consumeRPushMnemonic()) {
@@ -361,6 +360,43 @@ class Parser {
         if (consumeRPopMnemonic()) {
             return Success(RPOP);
         }
+        return Unmatched("");
+    }
+
+    function parseMacroJInstruction():ParseResult<AInstruction> {
+        if (consumeJEQMnemonic()) {
+            return Success(JEQ(switch (parseJOperand()) {
+                case Success(r):
+                    r;
+                case Unmatched(message):
+                    return Unmatched(message);
+            }));
+        }
+        if (consumeJNEMnemonic()) {
+            return Success(JNE(switch (parseJOperand()) {
+                case Success(r):
+                    r;
+                case Unmatched(message):
+                    return Unmatched(message);
+            }));
+        }
+        if (consumeJGTMnemonic()) {
+            return Success(JGT(switch (parseJOperand()) {
+                case Success(r):
+                    r;
+                case Unmatched(message):
+                    return Unmatched(message);
+            }));
+        }
+        if (consumeJLTMnemonic()) {
+            return Success(JLT(switch (parseJOperand()) {
+                case Success(r):
+                    r;
+                case Unmatched(message):
+                    return Unmatched(message);
+            }));
+        }
+
         return Unmatched("");
     }
 
@@ -512,26 +548,26 @@ class Parser {
         }
     }
 
-    function parseInOutOperand():ParseResult<Tuple2<String, String>> {
-        final beforeTokens = tokens.copy();
-        final bufferLabel = switch (parseLabel()) {
-            case Success(r):
-                r;
-            case Unmatched(message):
-                return Unmatched(message);
-        }
-        if (!consumeComma()) {
-            tokens = beforeTokens;
-            return Unmatched(", が必要です.");
-        }
-        final lengthBufferLabel = switch (parseLabel()) {
-            case Success(r):
-                r;
-            case Unmatched(message):
-                return Unmatched("ラベルを指定してください.");
-        }
-        return Success(new Tuple2(bufferLabel, lengthBufferLabel));
-    }
+    // function parseInOutOperand():ParseResult<Tuple2<String, String>> {
+    //     final beforeTokens = tokens.copy();
+    //     final bufferLabel = switch (parseLabel()) {
+    //         case Success(r):
+    //             r;
+    //         case Unmatched(message):
+    //             return Unmatched(message);
+    //     }
+    //     if (!consumeComma()) {
+    //         tokens = beforeTokens;
+    //         return Unmatched(", が必要です.");
+    //     }
+    //     final lengthBufferLabel = switch (parseLabel()) {
+    //         case Success(r):
+    //             r;
+    //         case Unmatched(message):
+    //             return Unmatched("ラベルを指定してください.");
+    //     }
+    //     return Success(new Tuple2(bufferLabel, lengthBufferLabel));
+    // }
 
     function parseR():ParseResult<I0to7> {
         final token:Nullable<TokenInfo> = tokens[0];
@@ -735,6 +771,22 @@ class Parser {
         return consumeToken(Mnemonic(RPOP));
     }
 
+    function consumeJEQMnemonic():Bool {
+        return consumeToken(Mnemonic(JEQ));
+    }
+
+    function consumeJNEMnemonic():Bool {
+        return consumeToken(Mnemonic(JNE));
+    }
+
+    function consumeJGTMnemonic():Bool {
+        return consumeToken(Mnemonic(JGT));
+    }
+
+    function consumeJLTMnemonic():Bool {
+        return consumeToken(Mnemonic(JLT));
+    }
+
     function consumeComment():Bool {
         return consumeToken(Comment);
     }
@@ -773,6 +825,10 @@ class Parser {
                         Success(CPA);
                     case CPL:
                         Success(CPL);
+                    case IN:
+                        Success(IN);
+                    case OUT:
+                        Success(OUT);
                     case _:
                         Unmatched("");
                 }
@@ -827,6 +883,10 @@ class Parser {
                         Success(SLL);
                     case SRL:
                         Success(SRL);
+                    case IN:
+                        Success(IN);
+                    case OUT:
+                        Success(OUT);
                     case _:
                         Unmatched("");
                 }

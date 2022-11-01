@@ -52,6 +52,10 @@ class Casl2 {
                         {text: [new Word(0x4400 | i.r1 << 4 | i.r2)]}
                     case CPL:
                         {text: [new Word(0x4500 | i.r1 << 4 | i.r2)]}
+                    case IN:
+                        {text: [new Word(0xfa00 | i.r1 << 4 | i.r2)]}
+                    case OUT:
+                        {text: [new Word(0xfb00 | i.r1 << 4 | i.r2)]}
                 }
             case I(i):
                 switch (i.mnemonic) {
@@ -87,6 +91,10 @@ class Casl2 {
                         assembleIOperand(0x52, i);
                     case SRL:
                         assembleIOperand(0x53, i);
+                    case IN:
+                        assembleIOperand(0xf8, i);
+                    case OUT:
+                        assembleIOperand(0xf9, i);
                 }
             case J(i):
                 switch (i.mnemonic) {

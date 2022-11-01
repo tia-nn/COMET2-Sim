@@ -1,6 +1,7 @@
 package tokenizer;
 
 import extype.ReadOnlyArray;
+import extype.Tuple.Tuple10;
 import extype.Tuple.Tuple2;
 import haxe.Exception;
 import tokenizer.TokenDefinition.MnemonicToken;
@@ -184,5 +185,9 @@ class Tokenizer {
         new Tuple2(~/^(out)(\s|$)/i, MnemonicToken.OUT),
         new Tuple2(~/^(rpush)(\s|$)/i, MnemonicToken.RPUSH),
         new Tuple2(~/^(rpop)(\s|$)/i, MnemonicToken.RPOP),
+        new Tuple2(~/^(jeq)(\s|$)/i, MnemonicToken.JEQ),
+        new Tuple2(~/^(jne)(\s|$)/i, MnemonicToken.JNE),
+        new Tuple2(~/^(jgt)(\s|$)/i, MnemonicToken.JGT),
+        new Tuple2(~/^(jlt)(\s|$)/i, MnemonicToken.JLT),
     ];
 }

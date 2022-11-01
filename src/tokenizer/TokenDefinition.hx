@@ -70,13 +70,17 @@ enum MnemonicToken {
     INT;
     IRET;
     NOP;
+    IN;
+    OUT;
 
     START;
     END;
     DS;
     DC;
-    IN;
-    OUT;
     RPUSH;
     RPOP;
+    JEQ;
+    JNE;
+    JGT;
+    JLT;
 }

@@ -201,10 +201,13 @@ enum AInstruction {
     END;
     DS(words:Int);
     DC(values:ReadOnlyArray<Word>);
-    IN(dataBuf:String, lengthBuf:String);
-    OUT(dataBuf:String, lengthBuf:String);
     RPUSH;
     RPOP;
+
+    JEQ(oprand:ParsedJOperand);
+    JNE(oprand:ParsedJOperand);
+    JGT(oprand:ParsedJOperand);
+    JLT(oprand:ParsedJOperand);
 }
 
 enum RMnemonic {
@@ -218,6 +221,9 @@ enum RMnemonic {
     XOR;
     CPA;
     CPL;
+
+    IN;
+    OUT;
 }
 
 enum IMnemonic {
@@ -237,6 +243,9 @@ enum IMnemonic {
     SRA;
     SLL;
     SRL;
+
+    IN;
+    OUT;
 }
 
 enum JMnemonic {

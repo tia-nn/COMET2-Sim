@@ -87,10 +87,10 @@ class Casl2MacroExpand {
                                     inst: Data(values[i]),
                                 });
                             }
-                        case IN(dataBuf, lengthBuf):
-                            trace("not implemeted...");
-                        case OUT(dataBuf, lengthBuf):
-                            trace("not implemeted...");
+                        // case IN(dataBuf, lengthBuf):
+                        //     trace("not implemeted...");
+                        // case OUT(dataBuf, lengthBuf):
+                        //     trace("not implemeted...");
                         case RPUSH:
                             instructions.push({
                                 label: inst.value.label.map(l -> [l]).getOrElse([]).concat(pendingLabel),
@@ -131,6 +131,42 @@ class Casl2MacroExpand {
                                     }),
                                 });
                             }
+                        case JEQ(oprand):
+                            instructions.push({
+                                label: inst.value.label.map(l -> [l]).getOrElse([]).concat(pendingLabel),
+                                inst: J(processJOperand({
+                                    mnemonic: JZE,
+                                    addr: oprand.addr,
+                                    x: oprand.x,
+                                }))
+                            });
+                        case JNE(oprand):
+                            instructions.push({
+                                label: inst.value.label.map(l -> [l]).getOrElse([]).concat(pendingLabel),
+                                inst: J(processJOperand({
+                                    mnemonic: JNZ,
+                                    addr: oprand.addr,
+                                    x: oprand.x,
+                                }))
+                            });
+                        case JGT(oprand):
+                            instructions.push({
+                                label: inst.value.label.map(l -> [l]).getOrElse([]).concat(pendingLabel),
+                                inst: J(processJOperand({
+                                    mnemonic: JPL,
+                                    addr: oprand.addr,
+                                    x: oprand.x,
+                                }))
+                            });
+                        case JLT(oprand):
+                            instructions.push({
+                                label: inst.value.label.map(l -> [l]).getOrElse([]).concat(pendingLabel),
+                                inst: J(processJOperand({
+                                    mnemonic: JMI,
+                                    addr: oprand.addr,
+                                    x: oprand.x,
+                                }))
+                            });
                     }
                 case I(i):
                     instructions.push({
