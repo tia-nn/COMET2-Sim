@@ -1,7 +1,6 @@
 package;
 
-import dump.Comet2Dump;
-import machine.Comet2Display;
+import comet2.Comet2Core;
 import sys.io.File;
 import types.Word;
 
@@ -45,15 +44,15 @@ class Comet2 {
             words.push(new Word(bytes.getUInt16(i * 2)));
         }
 
-        final comet2 = new Comet2Display(words, 0, 0, displayFile);
+        final comet2 = new Comet2Core(words, 0, 0);
+        // final comet2 = new Comet2Display(words, 0, 0, displayFile);
         // final comet2 = new Comet2Bios(words, 0, 0);
         final dump = File.write("comet2dump.txt");
 
-        while (!comet2.step()) {
-            // dump.seek(0, SeekBegin);
-            // Comet2Dump.dump(comet2.getState(), dump);
-        }
+        // while (!comet2.step()) {
+        // dump.seek(0, SeekBegin);
+        // Comet2Dump.dump(comet2.getState(), dump);
+        // }
         dump.seek(0, SeekBegin);
-        Comet2Dump.dump(comet2.getState(), dump);
     }
 }
