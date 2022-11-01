@@ -71,9 +71,9 @@
 
 | 割り込み | 例外コード | 原因                           |
 | -------- | ---------- | ------------------------------ |
-| 1        | 1          | マシン ソフトウェア割り込み    | <!-- | 1 | 2 | ユーザ ソフトウェア割り込み | --> |
-| 1        | 3          | マシン タイマー割り込み        | <!-- | 1 | 4 | ユーザ タイマー割り込み     | --> |
-| 1        | 5          | マシン 外部割り込み            | <!-- | 1 | 6 | ユーザ 外部割り込み         | --> |
+| 1        | 1          | マシン ソフトウェア割り込み    |
+| 1        | 3          | マシン タイマー割り込み        |
+| 1        | 5          | マシン 外部割り込み            |
 | 0        | 0          | 命令アクセスフォールト         |
 | 0        | 1          | 不正命令                       |
 | 0        | 2          | ブレークポイント               |
@@ -148,3 +148,27 @@ IRET
 - STATUS.PL <- STATUS.PPL
 - STATUS.IE <- STATUS.PIE
 - PR <- EPR
+
+## IO
+
+### 追加命令（変更）
+
+> COMET-IIではマクロ命令になっている
+
+```
+  IN  r1, r2        ; r1 <- port[r2]
+  IN  r, adr [, x]  ; r <- port[adr + x]
+  OUT r1, r2        ; port[r2] <- r1
+  OUT r, adr [, x]  ; port[adr + x] <- r
+```
+
+## マクロ命令
+
+```
+  jeq adr, x    ; jump equal -> jze
+  jne adr, x    ; jump not equal -> jnz
+  jgt adr, x    ; jump greater than -> jpl
+  jlt adr, x    ; jump less than -> jmi
+  # jge adr, x    ; jump greater equal -> (~sign)
+  # jle adr, x    ; jump less equal -> sign | zero
+```
