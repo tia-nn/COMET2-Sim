@@ -7,7 +7,7 @@ import types.FilePosition;
 enum ParseResult<T> {
     Success(result:T, position:FilePosition);
     Error(position:FilePosition, message:String);
-    Warning(tmpResult:Nullable<T>, position:FilePosition, message:String);
+    Warning(tmpResult:T, position:FilePosition, message:String);
 }
 
 // enum ParseError {

@@ -1,5 +1,6 @@
 package casl2.parser;
 
+import casl2.parser.AstDefinition.Addr;
 import casl2.parser.AstDefinition.IOperand;
 import casl2.parser.AstDefinition.InstructionType;
 import casl2.parser.AstDefinition.LabeledInstruction;
@@ -13,13 +14,17 @@ import extype.Maybe;
 import extype.Nullable;
 import extype.ReadOnlyArray;
 import extype.Result;
+import haxe.display.Position;
+import haxe.io.Error;
 import haxe.iterators.StringKeyValueIteratorUnicode;
 import haxe.macro.Context.Message;
+import haxe.macro.Expr.Case;
 import types.FilePosition;
 import types.Integer.GRIndex;
 import types.Integer.IRIndex;
 import types.Integer.Word;
 
+using StringTools;
 using tools.ArrayTools;
 
 class Parser {
@@ -184,10 +189,10 @@ class Parser {
                 return err;
         }
 
-        final addr = switch (next()) {
-            case Some(x):
-            case None:
-                return Error(lineEndPosition, "オペランドが必要です. (I命令 r, addr [, x])");
+        final addr = switch (parseAddr()) {
+            case Success(result, position):
+            case Error(position, message):
+            case Warning(tmpResult, position, message):
         }
 
         final r2 = switch (next()) {
@@ -252,6 +257,117 @@ class Parser {
         }
     }
 
+    function parseAddr(?errMessage:String = "アドレスが必要です."):ParseResult<Addr> {
+        return select([
+            wrapResult.bind(parseLabel.bind(), a -> Addr.Label(a)),
+            wrapResult.bind(parseNumberConstant.bind(), a -> Addr.Const(a)),
+            wrapResult.bind(parseLiteral.bind(), a -> Addr.Literal(a)),
+        ], errMessage);
+    }
+
+    function parseLabel(?errMessage:String = ""):ParseResult<String> {
+        return switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case Label:
+                        Success(x.src, x.position);
+                    default:
+                        Error(x.position, errMessage);
+                }
+            case None:
+                Error(lineEndPosition, errMessage);
+        }
+    }
+
+    function parseNumberAddr(?errMessage:String = ""):ParseResult<Addr> {
+        return switch (parseLabel(errMessage)) {
+            case Success(result, position):
+                Success(Label(result), position);
+            case Error(position, message):
+                return Error(position, message);
+            case Warning(tmpResult, position, message):
+                Warning(Label(tmpResult), position, message);
+        }
+    }
+
+    function parseNumberConstant(?errMessage:String = "数値が必要です.") {
+        return select([parseDec.bind(errMessage), parseHex.bind(errMessage)], errMessage);
+    }
+
+    function parseDec(?errMessage:String = "数値が必要です."):ParseResult<Word> {
+        return switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case Dec:
+                        Success(new Word(Std.parseInt(x.src)), x.position);
+                    default:
+                        Error(x.position, errMessage);
+                }
+            case None:
+                Error(lineEndPosition, errMessage);
+        }
+    }
+
+    function parseHex(?errMessage:String = "数値が必要です."):ParseResult<Word> {
+        return switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case Dec:
+                        Success(new Word(Std.parseInt(x.src.replace("#", "0x"))), x.position);
+                    default:
+                        Error(x.position, errMessage);
+                }
+            case None:
+                Error(lineEndPosition, errMessage);
+        }
+    }
+
+    function parseLiteral(?errMessage:String = "リテラルが必要です."):ParseResult<ReadOnlyArray<Word>> {
+        return select([parseDecLiteral.bind(), parseHexLiteral.bind(), parseStringLiteral.bind()], errMessage);
+    }
+
+    function parseDecLiteral(?errMessage:String = "リテラルが必要です."):ParseResult<ReadOnlyArray<Word>> {
+        return switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case DecLiteral:
+                        return Success([new Word(Std.parseInt(x.src.substr(1)))], x.position);
+                    default:
+                        Error(x.position, errMessage);
+                }
+            case None:
+                Error(lineEndPosition, errMessage);
+        }
+    }
+
+    function parseHexLiteral(?errMessage:String = "リテラルが必要です."):ParseResult<ReadOnlyArray<Word>> {
+        return switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case DecLiteral:
+                        return Success([new Word(Std.parseInt(x.src.replace("=#", "0x")))], x.position);
+                    default:
+                        Error(x.position, errMessage);
+                }
+            case None:
+                Error(lineEndPosition, errMessage);
+        }
+    }
+
+    function parseStringLiteral(?errMessage:String = "リテラルが必要です."):ParseResult<ReadOnlyArray<Word>> {
+        return switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case DecLiteral:
+                        str2words(getStringLiteralValue(x.src), x.position);
+                    default:
+                        Error(x.position, errMessage);
+                }
+            case None:
+                Error(lineEndPosition, errMessage);
+        }
+    }
+
     /**
         文字列('hogehoge')の中身(hogehoge)を取り出す
     **/
@@ -271,7 +387,7 @@ class Parser {
     **/
     static function str2words(s:String, pos:FilePosition):ParseResult<ReadOnlyArray<Word>> {
         final sjis:Array<Word> = [];
-        final warnings:Array<ParseError> = [];
+        final warnings:Array<String> = [];
 
         for (i => c in new StringKeyValueIteratorUnicode(s)) {
             final sjisChar = Nullable.of(SjisUnicodeTable.unicodeToSjis.get(c));
@@ -279,7 +395,7 @@ class Parser {
                 case Some(x):
                     sjis.push(new Word(x));
                 case None:
-                    warnings.push(Warning({col: pos.col + i, line: pos.line, len: 1}, '使用できない文字です (${std.String.fromCharCode(c)}) .'));
+                    warnings.push(std.String.fromCharCode(c));
                     sjis.push(new Word(0));
             }
         }
@@ -287,7 +403,7 @@ class Parser {
         return if (warnings.length == 0) {
             Success(sjis, pos);
         } else {
-            Error(sjis, pos, warnings);
+            Warning(sjis, pos, '使用できない文字が含まれています. (${warnings.join(",")})');
         }
     }
 
@@ -305,6 +421,22 @@ class Parser {
         }
     }
 
+    function select<A>(fnArr:Array<() -> ParseResult<A>>, errMessage:String) {
+        final lastP = p;
+        var lastErrPosition = null;
+        for (fn in fnArr) {
+            final res = fn();
+            switch (res) {
+                case Success(_), Warning(_):
+                    return res;
+                case Error(position, message):
+                    lastErrPosition = position;
+                    p = lastP;
+            }
+        }
+        return Error(lastErrPosition, errMessage);
+    }
+
     function next():Maybe<TokenInfo> {
         return if (tokens[p] != null) {
             if (tokens[p].position.line != line) {
@@ -318,5 +450,16 @@ class Parser {
 
     function remainLength() {
         return tokens.length - p;
+    }
+
+    static function wrapResult<A, B>(fn:() -> ParseResult<A>, wrapper:A->B):ParseResult<B> {
+        return switch (fn()) {
+            case Success(result, position):
+                Success(wrapper(result), position);
+            case Error(position, message):
+                return Error(position, message);
+            case Warning(tmpResult, position, message):
+                Warning(wrapper(tmpResult), position, message);
+        }
     }
 }
