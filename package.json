@@ -4,7 +4,9 @@
   "description": "[wip] COMET-Ⅱ シミュレータ　（そのうち OS 実装用に拡張する）",
   "main": "./app/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "webpack-dev-server",
+    "prebuild": "haxe build.react.hxml",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -21,9 +23,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "css-loader": "^6.7.1",
     "html-webpack-plugin": "^5.5.0",
-    "style-loader": "^3.3.1",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.11.1"

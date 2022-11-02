@@ -42,7 +42,7 @@ class Comet2Core {
 
     final port:Port;
 
-    public function new(program:ReadOnlyArray<Word>, offset:Int = 0, entry:Int = 0, port:Port) {
+    public function new(program:ReadOnlyArray<Word>, offset:Int = 0, entry:Int = 0, ?port:Port) {
         GR = [for (i in 0...8) new Word(0)];
         SP = new Word(0xffff);
         PR = new Word(entry);
