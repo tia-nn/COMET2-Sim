@@ -5,6 +5,7 @@ import comet2.csr.IERegister;
 import comet2.csr.IWRegister;
 import comet2.csr.StatusRegister;
 import extype.Exception;
+import extype.Map;
 import extype.Maybe;
 import extype.Nullable;
 import extype.ReadOnlyArray;
@@ -39,7 +40,9 @@ class Comet2Core {
     var inTrap:Bool;
     var isEnded:Bool;
 
-    public function new(program:ReadOnlyArray<Word>, offset:Int = 0, entry:Int = 0) {
+    final port:Port;
+
+    public function new(program:ReadOnlyArray<Word>, offset:Int = 0, entry:Int = 0, port:Port) {
         GR = [for (i in 0...8) new Word(0)];
         SP = new Word(0xffff);
         PR = new Word(entry);
@@ -59,6 +62,8 @@ class Comet2Core {
 
         isEnded = false;
         inTrap = false;
+
+        this.port = port;
 
         load(program, offset);
     }
@@ -440,3 +445,5 @@ enum MemoryAccessMode {
     Write(w:Word);
     Exec;
 }
+
+typedef Port = Map<Int, {portIn:() -> Word, portOut:Word->Void}>
