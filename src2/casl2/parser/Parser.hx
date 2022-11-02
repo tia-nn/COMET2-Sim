@@ -1,20 +1,20 @@
 package casl2.parser;
 
+import casl2.parser.AstDefinition.IOperand;
 import casl2.parser.AstDefinition.InstructionType;
 import casl2.parser.AstDefinition.LabeledInstruction;
 import casl2.parser.AstDefinition.ROperand;
-import casl2.parser.ParseResult.ParseError;
-import casl2.parser.ParseResult.ParseResultTools;
 import casl2.tokenizer.TokenDefinition.InstTokenList;
 import casl2.tokenizer.TokenDefinition.MnemonicToken;
+import casl2.tokenizer.TokenDefinition.Token;
 import casl2.tokenizer.TokenDefinition.TokenInfo;
 import casl2.tokenizer.TokenDefinition.TokenList;
-import extype.Error;
 import extype.Maybe;
 import extype.Nullable;
 import extype.ReadOnlyArray;
 import extype.Result;
 import haxe.iterators.StringKeyValueIteratorUnicode;
+import haxe.macro.Context.Message;
 import types.FilePosition;
 import types.Integer.GRIndex;
 import types.Integer.IRIndex;
@@ -40,7 +40,6 @@ class Parser {
 
     public static function parse(tokens:TokenList) {
         final parsedRows:Array<ParseResult<LabeledInstruction>> = [];
-        final errors:Array<ParseError> = [];
 
         for (instTokens in tokens) {
             final parser = new Parser(instTokens);
@@ -63,12 +62,12 @@ class Parser {
         final label = parseLableOrLeadSpace();
         final inst = parseInstruction();
 
-        return ParseResultTools.merge(label, inst, (label, inst) -> {
-            return ({
-                label: label.getUnsafe(),
-                inst: inst,
-            } : LabeledInstruction);
-        });
+        // return ParseResultTools.merge(label, inst, (label, inst) -> {
+        //     return ({
+        //         label: label.getUnsafe(),
+        //         inst: inst,
+        //     } : LabeledInstruction);
+        // });
     }
 
     function parseLableOrLeadSpace():ParseResult<Nullable<String>> {
@@ -81,10 +80,10 @@ class Parser {
                 } else {
                     p--;
                     final position:FilePosition = {
-                        line: x.position.line,
+                        line: line,
                         col: 0,
                     };
-                    Error(null, x.position, [Fail(position, "先頭はインデントかラベルが必要です.")]);
+                    Warning(null, position, "先頭はインデントかラベルが必要です.");
                 }
             case None:
                 throw 'unreachable';
@@ -98,14 +97,10 @@ class Parser {
                     case Mnemonic(mnemonic):
                         return _parseInstruction(mnemonic);
                     default:
-                        final pos:FilePosition = {
-                            line: x.position.line,
-                            col: x.position.col,
-                        }
-                        Error(null, pos, [Fail(pos, "命令が必要です.")]);
+                        Error(x.position, "命令が必要です.");
                 }
             case None:
-                Error(null, lineEndPosition, [Fail(lineEndPosition, "命令が必要です.")]);
+                Error(lineEndPosition, "命令が必要です.");
         }
     }
 
@@ -128,12 +123,91 @@ class Parser {
     }
 
     function parseROperand():ParseResult<ROperand> {
-        final errors:Array<ParseError> = [];
-        switch (next()) {
+        var position;
+        final r1 = switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case GR:
+                        position = x.position;
+                        new GRIndex(Std.parseInt(x.src));
+                    default:
+                        return Error(x.position, "オペランドが間違っています. (R命令 r1, r2)");
+                }
+            case None:
+                return Error(lineEndPosition, "オペランドが必要です. (R命令 r1, r2)");
+        }
+
+        switch (consumeToken(Comma, "コンマが必要です. (R命令 r1, r2)")) {
+            case Success(value):
+            case Failure(err):
+                return err;
+        }
+
+        final r2 = switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case GR:
+                        position = {
+                            line: position.line,
+                            col: position.col,
+                            len: x.position.col + x.position.len.getOrElse(0) - position.col
+                        }
+                        new GRIndex(Std.parseInt(x.src));
+                    default:
+                        return Error(x.position, "オペランドが間違っています. (R命令 r1, r2)");
+                }
+            case None:
+                return Error(lineEndPosition, "オペランドが必要です. (R命令 r1, r2)");
+        }
+
+        return Success({r1: r1, r2: r2}, position);
+    }
+
+    function parseIOperand():ParseResult<IOperand> {
+        var position;
+        final r = switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case GR:
+                        position = x.position;
+                        new GRIndex(Std.parseInt(x.src));
+                    default:
+                        return Error(x.position, "オペランドが間違っています. (I命令 r, addr [, x])");
+                }
+            case None:
+                return Error(lineEndPosition, "オペランドが必要です. (I命令 r, addr [, x])");
+        }
+
+        switch (consumeToken(Comma, "コンマが必要です. (I命令 r, addr [, x])")) {
+            case Success(value):
+            case Failure(err):
+                return err;
+        }
+
+        final addr = switch (next()) {
             case Some(x):
             case None:
-                return Error(null, lineEndPosition, [Fail(lineEndPosition, "オペランドが必要です. (R命令 r1, r2)")]);
+                return Error(lineEndPosition, "オペランドが必要です. (I命令 r, addr [, x])");
         }
+
+        final r2 = switch (next()) {
+            case Some(x):
+                switch (x.token) {
+                    case GR:
+                        position = {
+                            line: position.line,
+                            col: position.col,
+                            len: x.position.col + x.position.len.getOrElse(0) - position.col
+                        }
+                        new GRIndex(Std.parseInt(x.src));
+                    default:
+                        return Error(x.position, "オペランドが間違っています. (R命令 r1, r2)");
+                }
+            case None:
+                return Error(lineEndPosition, "オペランドが必要です. (R命令 r1, r2)");
+        }
+
+        return Success({r1: r1, r2: r2}, position);
     }
 
     static function isComment(token:Null<TokenInfo>) {
@@ -144,18 +218,18 @@ class Parser {
         return token != null && token.token.match(LeadSpace);
     }
 
-    function parseGR():Maybe<GRIndex> {
+    function parseGR():Result<GRIndex, Maybe<FilePosition>> {
         return switch (next()) {
             case Some(x):
                 switch (x.token) {
                     case GR:
-                        Some(new GRIndex(Std.parseInt(x.src)));
+                        Success(new GRIndex(Std.parseInt(x.src)));
                     default:
                         p--;
-                        None;
+                        Failure(Some(x.position));
                 }
             case None:
-                None;
+                Failure(None);
         }
     }
 
@@ -214,6 +288,20 @@ class Parser {
             Success(sjis, pos);
         } else {
             Error(sjis, pos, warnings);
+        }
+    }
+
+    function consumeToken<A>(match:Token, errMessage:String):Result<TokenInfo, ParseResult<A>> {
+        return switch (next()) {
+            case Some(x):
+                if (x.token.equals(match)) {
+                    Success(x);
+                } else {
+                    p--;
+                    Failure(Error(x.position, errMessage));
+                }
+            default:
+                Failure(Error(lineEndPosition, errMessage));
         }
     }
 
