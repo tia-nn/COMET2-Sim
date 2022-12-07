@@ -42,7 +42,7 @@ class Comet2Core {
 
     final port:Port;
 
-    public function new(program:ReadOnlyArray<Word>, offset:Int = 0, entry:Int = 0, ?port:Port) {
+    public function new(program:ReadOnlyArray<Word>, offset:Int = 0, entry:Int = 0, ?port:Nullable<Port>) {
         GR = [for (i in 0...8) new Word(0)];
         SP = new Word(0xffff);
         PR = new Word(entry);
@@ -63,7 +63,7 @@ class Comet2Core {
         isEnded = false;
         inTrap = false;
 
-        this.port = port;
+        this.port = port.getOrElse(new Map());
 
         load(program, offset);
     }
@@ -213,6 +213,22 @@ class Comet2Core {
                         } else /* GR[i.r1] < GR[i.r2] */ {
                             Some(new Word(0x8000)); // SF = 1; ZF = 0;
                         }
+                    case IN:
+                        final reg = Nullable.of(port.get(GR[i.r2])).toMaybe();
+                        switch (reg) {
+                            case Some(p):
+                                GR[i.r1] = p.portIn();
+                            case None:
+                                trace("IN; port disabled.");
+                        }
+                    case OUT:
+                        final reg = Nullable.of(port.get(GR[i.r2])).toMaybe();
+                        switch (reg) {
+                            case Some(p):
+                                p.portOut(GR[i.r1]);
+                            case None:
+                                trace("OUT; port disabled.");
+                        }
                 }
             case I(i):
                 final before = GR[i.r];
@@ -325,6 +341,23 @@ class Comet2Core {
                             GR[i.r] = GR[i.r] >>> eAddr;
                         }
                         result4FR = Some(GR[i.r]);
+
+                    case IN:
+                        final reg = Nullable.of(port.get(GR[eAddr])).toMaybe();
+                        switch (reg) {
+                            case Some(p):
+                                GR[i.r] = p.portIn();
+                            case None:
+                                trace("IN; port disabled.");
+                        }
+                    case OUT:
+                        final reg = Nullable.of(port.get(GR[eAddr])).toMaybe();
+                        switch (reg) {
+                            case Some(p):
+                                p.portOut(GR[i.r]);
+                            case None:
+                                trace("OUT; port disabled.");
+                        }
                 }
             case J(i):
                 final eAddr = calcAddr(i.addr, i.x);

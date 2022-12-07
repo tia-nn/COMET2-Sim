@@ -22,9 +22,13 @@
 
 RTC Register (0x0010)
 
-> | 15 - 11 | 10 - 5 | 4 - 0 | 3 - 0 |
-> | ------- | ------ | ----- | ----- |
-> |         |        |       |       |
+RTC MSec Register   (0x0010)
+RTC Sec Register    (0x0011)
+RTC Min Register    (0x0012)
+RTC Hour Register   (0x0013)
+RTC Day Register    (0x0014)
+RTC Mon Register    (0x0015)
+RTC Year Register   (0x0016)
 
 ## KBC
 

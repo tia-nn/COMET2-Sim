@@ -69,6 +69,9 @@ enum RMnemonic {
     XOR;
     CPA;
     CPL;
+
+    IN;
+    OUT;
 }
 
 enum IMnemonic {
@@ -88,6 +91,9 @@ enum IMnemonic {
     SRA;
     SLL;
     SRL;
+
+    IN;
+    OUT;
 }
 
 enum JMnemonic {
