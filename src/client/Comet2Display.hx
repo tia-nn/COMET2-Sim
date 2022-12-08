@@ -1,8 +1,10 @@
 package client;
 
+import client.external.RTC;
 import comet2.Comet2Core;
 import comet2.FrozenComet2Core;
 import comet2.Instruction;
+import extype.Map;
 import extype.Nullable;
 import extype.ReadOnlyArray;
 import extype.Result;
@@ -15,14 +17,55 @@ import types.Word;
 using StringTools;
 using comet2.BoolTools;
 using comet2.InstructionTools;
+using comet2.IntTools;
 
 class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplayState> {
     var machine:Comet2Core;
     var canvasEl:CanvasElement;
 
+    var timerRing:Int = 0;
+
+    final portMap:PortMap = Map.of([
+        0x0010 => {
+            portIn: () -> new Word(0),
+            portOut: (_) -> {
+            }
+        },
+        0x0011 => {
+            portIn: RTC.getSeconds,
+            portOut: (_) -> {
+            }
+        },
+        0x0012 => {
+            portIn: RTC.getMinutes,
+            portOut: (_) -> {
+            }
+        },
+        0x0013 => {
+            portIn: RTC.getHours,
+            portOut: (_) -> {
+            }
+        },
+        0x0014 => {
+            portIn: RTC.getDay,
+            portOut: (_) -> {
+            }
+        },
+        0x0015 => {
+            portIn: RTC.getMonth,
+            portOut: (_) -> {
+            }
+        },
+        0x0016 => {
+            portIn: RTC.getYear,
+            portOut: (_) -> {
+            }
+        },
+    ]);
+
     public function new(props) {
         super(props);
-        machine = new Comet2Core([]);
+        machine = new Comet2Core([], 0, 0, portMap);
         final frozen = machine.frozen();
         state = {
             machine: frozen,
@@ -34,7 +77,8 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
             framebuffer: 0x1000,
             imageData: createImageData(frozen.memory, 0, 320, 160),
             displayAllMemory: false,
-            stepN: 100
+            stepN: 100,
+            timerStep: 1000
         };
     }
 
@@ -196,11 +240,19 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
         </table>');
     }
 
+    function stepWithTimer() {
+        machine.step();
+        if (++timerRing >= state.timerStep) {
+            machine.timerInterrupt();
+            timerRing = 0;
+        }
+    }
+
     function onStepButtonClick(ev) {
         final lastMachine = machine.frozen();
         final lastPR = lastMachine.PR;
         final lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
-        machine.step();
+        stepWithTimer();
         final frozen = machine.frozen();
         final imageData = createImageData(frozen.memory, state.framebuffer, state.canvasWidth, state.canvasHeight);
         setState({
@@ -219,7 +271,7 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
             lastMachine = machine.frozen();
             lastPR = lastMachine.PR;
             lastInst = lastMachine.memory[lastPR].toInstruction(lastMachine.memory[lastPR + 1]);
-            machine.step();
+            stepWithTimer();
         }
         final frozen = machine.frozen();
         final imageData = createImageData(frozen.memory, state.framebuffer, state.canvasWidth, state.canvasHeight);
@@ -258,7 +310,7 @@ class Comet2Display extends ReactComponentOf<Comet2DisplayProps, Comet2DisplaySt
 
     override function componentDidUpdate(prevProps:Comet2DisplayProps, prevState:Comet2DisplayState) {
         if (prevProps.program != props.program) {
-            machine = new Comet2Core(props.program.text, props.program.entry);
+            machine = new Comet2Core(props.program.text, props.program.entry, portMap);
             final frozen = machine.frozen();
             final imageData = createImageData(frozen.memory, state.framebuffer, state.canvasWidth, state.canvasHeight);
             setState({machine: frozen, imageData: imageData});
@@ -289,4 +341,5 @@ typedef Comet2DisplayState = {
     final imageData:ImageData;
     final displayAllMemory:Bool;
     final stepN:Int;
+    final timerStep:Int;
 }

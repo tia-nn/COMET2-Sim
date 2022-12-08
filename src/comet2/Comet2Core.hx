@@ -40,9 +40,9 @@ class Comet2Core {
     var inTrap:Bool;
     var isEnded:Bool;
 
-    final port:Port;
+    final portMap:PortMap;
 
-    public function new(program:ReadOnlyArray<Word>, offset:Int = 0, entry:Int = 0, ?port:Nullable<Port>) {
+    public function new(program:ReadOnlyArray<Word>, offset:Int = 0, entry:Int = 0, ?portMap:Nullable<PortMap>) {
         GR = [for (i in 0...8) new Word(0)];
         SP = new Word(0xffff);
         PR = new Word(entry);
@@ -63,7 +63,7 @@ class Comet2Core {
         isEnded = false;
         inTrap = false;
 
-        this.port = port.getOrElse(new Map());
+        this.portMap = portMap.getOrElse(new Map());
 
         load(program, offset);
     }
@@ -74,6 +74,10 @@ class Comet2Core {
 
     public function externalInterrupt() {
         IW.external = true;
+    }
+
+    public function timerInterrupt() {
+        IW.timer = true;
     }
 
     function load(program:ReadOnlyArray<Word>, offset:Int = 0) {
@@ -214,18 +218,18 @@ class Comet2Core {
                             Some(new Word(0x8000)); // SF = 1; ZF = 0;
                         }
                     case IN:
-                        final reg = Nullable.of(port.get(GR[i.r2])).toMaybe();
+                        final reg = Nullable.of(portMap.get(GR[i.r2])).toMaybe();
                         switch (reg) {
-                            case Some(p):
-                                GR[i.r1] = p.portIn();
+                            case Some(port):
+                                GR[i.r1] = port.portIn();
                             case None:
                                 trace("IN; port disabled.");
                         }
                     case OUT:
-                        final reg = Nullable.of(port.get(GR[i.r2])).toMaybe();
+                        final reg = Nullable.of(portMap.get(GR[i.r2])).toMaybe();
                         switch (reg) {
-                            case Some(p):
-                                p.portOut(GR[i.r1]);
+                            case Some(port):
+                                port.portOut(GR[i.r1]);
                             case None:
                                 trace("OUT; port disabled.");
                         }
@@ -343,18 +347,18 @@ class Comet2Core {
                         result4FR = Some(GR[i.r]);
 
                     case IN:
-                        final reg = Nullable.of(port.get(GR[eAddr])).toMaybe();
+                        final reg = Nullable.of(portMap.get(GR[eAddr])).toMaybe();
                         switch (reg) {
-                            case Some(p):
-                                GR[i.r] = p.portIn();
+                            case Some(port):
+                                GR[i.r] = port.portIn();
                             case None:
                                 trace("IN; port disabled.");
                         }
                     case OUT:
-                        final reg = Nullable.of(port.get(GR[eAddr])).toMaybe();
+                        final reg = Nullable.of(portMap.get(GR[eAddr])).toMaybe();
                         switch (reg) {
-                            case Some(p):
-                                p.portOut(GR[i.r]);
+                            case Some(port):
+                                port.portOut(GR[i.r]);
                             case None:
                                 trace("OUT; port disabled.");
                         }
@@ -479,4 +483,4 @@ enum MemoryAccessMode {
     Exec;
 }
 
-typedef Port = Map<Int, {portIn:() -> Word, portOut:Word->Void}>
+typedef PortMap = Map<Int, {portIn:() -> Word, portOut:Word->Void}>
